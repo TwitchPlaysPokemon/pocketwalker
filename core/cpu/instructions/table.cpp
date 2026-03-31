@@ -29,9 +29,22 @@ void InstructionTable::AddSubtable(const uint32_t first, const uint32_t second, 
     subtables[first][second] = &table;
 }
 
+void InstructionTable::AddSubtable(uint32_t first, uint32_t second, KeyPredicate first_key, KeyPredicate second_key,
+    ContainerBuilder builder)
+{
+    const auto table = new InstructionTable {
+        first_key,
+        second_key
+    };
+
+    builder(*table);
+
+    subtables[first][second] = table;
+}
+
 void InstructionTable::AddPattern(const uint32_t first_value, const uint32_t first_mask,
-                                   const uint32_t second_value, const uint32_t second_mask,
-                                   Instruction instr)
+                                  const uint32_t second_value, const uint32_t second_mask,
+                                  Instruction instr)
 {
     patterns.push_back({first_value, first_mask, second_value, second_mask, std::move(instr)});
 }

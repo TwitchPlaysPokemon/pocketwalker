@@ -1,10 +1,5 @@
 #include "ram.h"
 
-RAM::RAM()
-{
-
-}
-
 uint8_t RAM::Read(uint16_t address)
 {
     return this->ram[address - RAM_START];

@@ -14,8 +14,6 @@
 class IO : public MemoryInterface
 {
 public:
-    explicit IO();
-
     uint8_t Read(uint16_t address) override;
     void Write(uint16_t address, uint8_t value) override;
 

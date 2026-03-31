@@ -29,5 +29,5 @@ struct Instruction
     uint8_t size;
     InstructionCycles cycles;
     InstructionExecute execute;
-    bool branch;
+    bool branch_absolute;
 };

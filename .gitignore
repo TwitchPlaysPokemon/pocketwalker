@@ -1,5 +1,9 @@
+# CLion
 .idea
 
-roms
-
+# Build
 cmake-build-debug
+
+# Personal
+roms
+docs
