@@ -2,10 +2,11 @@
 #include <memory>
 
 #include "core/memory/interface.h"
+#include "core/soc/interrupts/interrupts.h"
 #include "core/soc/memory/regions/io.h"
 
 #define TIMER_B1_ADDR_TMB1 0xF0D0
-#define TIMER_B1_ADDR_TCB1 0xF0D1
+#define TIMER_B1_ADDR_TCB1_TLB1 0xF0D1
 
 union TMB1_t
 {
@@ -23,8 +24,7 @@ union TMB1_t
 class TimerB1
 {
 public:
-    explicit TimerB1(const std::shared_ptr<MemoryInterface>& memory);
-
+    explicit TimerB1(const std::shared_ptr<Interrupts>& interrupts);
     void RegisterIOHandlers(const std::shared_ptr<IO>& io);
 
     void Cycle(uint8_t cycles);
@@ -34,7 +34,7 @@ public:
     uint8_t TLB1 = 0;
 
 private:
-    std::shared_ptr<MemoryInterface> mem = nullptr;
+    std::shared_ptr<Interrupts> interrupts;
 
     uint32_t timer_b1_cycles = 0;
 };

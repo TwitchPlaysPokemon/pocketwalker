@@ -3,3 +3,17 @@
 #define CLOCK_RATE 3686400
 #define PHI_CLK 3686400
 #define PHI_W_CLK 32768
+
+#define IO_HANDLER_READ_UNION(addr, reg) \
+    io->RegisterReadHandler(addr, [this]() { return reg.VALUE; })
+
+#define IO_HANDLER_WRITE_UNION(addr, reg) \
+    io->RegisterWriteHandler(addr, [this](const uint8_t value) { reg.VALUE = value; })
+
+
+#define IO_HANDLER_READ_VALUE(addr, reg) \
+    io->RegisterReadHandler(addr, [this]() { return reg; })
+
+#define IO_HANDLER_WRITE_VALUE(addr, reg) \
+    io->RegisterWriteHandler(addr, [this](const uint8_t value) { reg = value; })
+

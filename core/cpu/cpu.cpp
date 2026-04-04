@@ -11,6 +11,7 @@ CPU::CPU(const std::shared_ptr<MemoryInterface>& memory)
     this->mem = memory;
 
     this->reg.PC = this->mem->Read16(CPU_VECTOR_RESET_ADDR);
+    reg.flags.I = true;
 }
 
 bool print_instructions = false;
@@ -27,6 +28,12 @@ uint8_t CPU::Cycle()
     if (reg.PC == 0x346) [[unlikely]]
     {
         reg.PC = 0x358;
+    }
+
+    // temporarily skip accelerometer sleep until interrupt has been implemented
+    if (reg.PC == 0x7700) [[unlikely]]
+    {
+        reg.PC += 2;
     }
 
     if (!sleep)
@@ -48,13 +55,23 @@ uint8_t CPU::Cycle()
     return 1; // TODO investigate proper sleep modes and ticking for other components
 }
 
-void CPU::Push16(uint16_t value)
+void CPU::Interrupt(uint16_t vector_address)
+{
+    Push16(reg.flags.CCR << 8);
+    Push16(reg.PC);
+
+    reg.PC = mem->Read16(vector_address);
+    reg.flags.I = true;
+    sleep = false;
+}
+
+void CPU::Push16(uint16_t value) const
 {
     *reg.SP -= 2;
     mem->Write16(*reg.SP, value);
 }
 
-uint16_t CPU::Pop16()
+uint16_t CPU::Pop16() const
 {
     const uint16_t value = mem->Read16(*reg.SP);
     *reg.SP += 2;

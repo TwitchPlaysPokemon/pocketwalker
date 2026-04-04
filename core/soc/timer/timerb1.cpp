@@ -13,32 +13,18 @@ static std::array<uint32_t, 8> clock_rates = {
     PHI_CLK / PHI_W_CLK * 256
 };
 
-TimerB1::TimerB1(const std::shared_ptr<MemoryInterface>& memory)
+TimerB1::TimerB1(const std::shared_ptr<Interrupts>& interrupts)
 {
-    mem = memory;
+    this->interrupts = interrupts;
 }
 
 void TimerB1::RegisterIOHandlers(const std::shared_ptr<IO>& io)
 {
-    io->RegisterReadHandler(TIMER_B1_ADDR_TMB1, [this]
-    {
-        return TMB1.VALUE;
-    });
+    IO_HANDLER_READ_UNION(TIMER_B1_ADDR_TMB1, TMB1);
+    IO_HANDLER_WRITE_UNION(TIMER_B1_ADDR_TMB1, TMB1);
 
-    io->RegisterWriteHandler(TIMER_B1_ADDR_TMB1, [this](const uint8_t value)
-    {
-        TMB1.VALUE = value;
-    });
-
-    io->RegisterReadHandler(TIMER_B1_ADDR_TCB1, [this]
-    {
-        return TCB1;
-    });
-
-    io->RegisterWriteHandler(TIMER_B1_ADDR_TCB1, [this](const uint8_t value)
-    {
-        TLB1 = value;
-    });
+    IO_HANDLER_READ_VALUE(TIMER_B1_ADDR_TCB1_TLB1, TCB1);
+    IO_HANDLER_WRITE_VALUE(TIMER_B1_ADDR_TCB1_TLB1, TLB1);
 }
 
 void TimerB1::Cycle(uint8_t cycles)
@@ -54,7 +40,7 @@ void TimerB1::Cycle(uint8_t cycles)
         if (TCB1 == 0xFF)
         {
             TCB1 = TLB1;
-            // TODO add interrrupt flag
+            interrupts->IRR2.IRRTB1 = true;
         }
         else
         {

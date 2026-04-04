@@ -1,5 +1,6 @@
 #pragma once
 #include "core/cpu/cpu.h"
+#include "interrupts/interrupts.h"
 #include "memory/bus.h"
 #include "memory/regions/rom.h"
 #include "ssu/ssu.h"
@@ -13,7 +14,11 @@ public:
     void Run();
 
     std::shared_ptr<MemoryBus> memory = nullptr;
+
     std::shared_ptr<CPU> cpu = nullptr;
+    std::shared_ptr<Interrupts> interrupts = nullptr;
+
     std::shared_ptr<SSU> ssu = nullptr;
+
     std::shared_ptr<TimerB1> timer_b1 = nullptr;
 };

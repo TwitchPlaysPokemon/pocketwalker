@@ -63,15 +63,8 @@ void SSU::RegisterIOHandlers(const std::shared_ptr<IO>& io)
             SSSR.TDRE = true;
     });
 
-    io->RegisterReadHandler(SSU_ADDR_SSER, [this]()
-    {
-        return SSER.VALUE;
-    });
-
-    io->RegisterWriteHandler(SSU_ADDR_SSER, [this](const uint8_t value)
-    {
-        SSER.VALUE = value;
-    });
+    IO_HANDLER_READ_UNION(SSU_ADDR_SSER, SSER);
+    IO_HANDLER_WRITE_UNION(SSU_ADDR_SSER, SSER);
 }
 
 void SSU::RegisterPeripheral(const std::shared_ptr<Peripheral>& peripheral, uint16_t port_addr, uint8_t pin_index,

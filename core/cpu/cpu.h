@@ -13,9 +13,17 @@ public:
 
     uint8_t Cycle();
 
-    void Push16(uint16_t value);
-    uint16_t Pop16();
+    void Interrupt(uint16_t vector_address);
 
+    void Push16(uint16_t value) const;
+    uint16_t Pop16() const;
+
+    Registers reg = {};
+    bool sleep = false;
+
+    std::shared_ptr<MemoryInterface> mem;
+
+public:
     uint8_t aH() const { return mem->Read8(reg.PC) >> 4; }
     uint8_t aL() const { return mem->Read8(reg.PC) & 0xF; }
     uint8_t bH() const { return mem->Read8(reg.PC + 1) >> 4; }
@@ -46,9 +54,4 @@ public:
     uint16_t cd() const { return mem->Read16(reg.PC + 2); }
     uint16_t ef() const { return mem->Read16(reg.PC + 4); }
     uint16_t gh() const { return mem->Read16(reg.PC + 6); }
-
-    Registers reg = {};
-    bool sleep = false;
-
-    std::shared_ptr<MemoryInterface> mem;
 };
