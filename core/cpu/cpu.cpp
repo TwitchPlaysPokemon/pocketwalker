@@ -6,15 +6,29 @@
 
 static InstructionSet instruction_set = {};
 
-CPU::CPU(std::shared_ptr<MemoryInterface> memory)
+CPU::CPU(const std::shared_ptr<MemoryInterface>& memory)
 {
     this->mem = memory;
 
     this->reg.PC = this->mem->Read16(CPU_VECTOR_RESET_ADDR);
 }
 
+bool print_instructions = false;
+
 uint8_t CPU::Cycle()
 {
+    // temporarily skip factory tests until all peripherals have been implemented
+    if (reg.PC == 0x0336) [[unlikely]]
+    {
+        reg.PC += 4;
+    }
+
+    // temporarily skip battery check until adc has been implemented
+    if (reg.PC == 0x346) [[unlikely]]
+    {
+        reg.PC = 0x358;
+    }
+
     uint16_t exec_pc = this->reg.PC;
     const Instruction* instruction = instruction_set.Decode(*this);
 
@@ -23,7 +37,8 @@ uint8_t CPU::Cycle()
     if (!instruction->branch_absolute)
         this->reg.PC += instruction->size;
 
-    //std::println("0x{:04X} {}", exec_pc, instruction->name);
+    if (print_instructions)
+        std::println("0x{:04X} {}", exec_pc, instruction->name);
 
     return instruction->cycles.Count();
 }

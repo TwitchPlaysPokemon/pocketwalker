@@ -9,7 +9,7 @@
 class CPU
 {
 public:
-    explicit CPU(std::shared_ptr<MemoryInterface> memory);
+    explicit CPU(const std::shared_ptr<MemoryInterface>& memory);
 
     uint8_t Cycle();
 

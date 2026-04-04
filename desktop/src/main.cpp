@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
     }
 
     auto save_path = arguments.get<std::string>("save");
-    std::array<uint8_t, 0xFFFF> save_buffer = {};
+    EepromBuffer save_buffer = {};
     if (std::filesystem::exists(save_path))
     {
         std::ifstream eeprom_file(save_path, std::ios::binary);

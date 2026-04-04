@@ -9,3 +9,8 @@ void RAM::Write(uint16_t address, uint8_t value)
 {
     this->ram[address - RAM_START] = value;
 }
+
+void* RAM::Ptr(uint16_t address)
+{
+    return &this->ram[address - RAM_START];
+}

@@ -53,3 +53,20 @@ void MemoryBus::Write(uint16_t address, uint8_t value)
         return;
     }
 }
+
+void* MemoryBus::Ptr(uint16_t address)
+{
+    if (address >= ROM_START && address <= ROM_END)
+        return rom->Ptr(address);
+
+    if (address >= RAM_START && address <= RAM_END)
+        return ram->Ptr(address);
+
+    if (address >= IO_LOW_START && address <= IO_LOW_END)
+        return io->Ptr(address);
+
+    if (address >= IO_HIGH_START && address <= IO_HIGH_END)
+        return io->Ptr(address);
+
+    return nullptr;
+}

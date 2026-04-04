@@ -36,3 +36,18 @@ void MemoryInterface::Write32(uint16_t address, uint32_t value)
     Write(address + 3, (value >> 0) & 0xFF);
 }
 
+uint8_t* MemoryInterface::Ptr8(uint16_t address)
+{
+    return static_cast<uint8_t*>(Ptr(address));
+}
+
+uint16_t* MemoryInterface::Ptr16(uint16_t address)
+{
+    return static_cast<uint16_t*>(Ptr(address));
+}
+
+uint32_t* MemoryInterface::Ptr32(uint16_t address)
+{
+    return static_cast<uint32_t*>(Ptr(address));
+}
+

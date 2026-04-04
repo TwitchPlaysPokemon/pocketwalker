@@ -1,0 +1,137 @@
+#include "ssu.h"
+
+#include <array>
+#include <print>
+
+#include "core/soc/defines.h"
+
+std::array<uint16_t, 8> clock_rates = {
+    256,
+    128,
+    64,
+    32,
+    16,
+    8,
+    4,
+    2
+};
+
+SSU::SSU(const std::shared_ptr<MemoryInterface>& memory)
+{
+    mem = memory;
+
+    SSMR = reinterpret_cast<SSMR_t*>(memory->Ptr8(SSU_ADDR_SSMR));
+
+    SSSR.TDRE = true;
+}
+
+void SSU::RegisterIOHandlers(const std::shared_ptr<IO>& io)
+{
+    io->RegisterReadHandler(SSU_ADDR_SSTDR, [this]
+    {
+        return SSTDR;
+    });
+
+    io->RegisterWriteHandler(SSU_ADDR_SSTDR, [this](const uint8_t value)
+    {
+        SSTDR = value;
+        SSSR.TDRE = false;
+        SSSR.TEND = false;
+    });
+
+    io->RegisterReadHandler(SSU_ADDR_SSRDR, [this]
+    {
+        SSSR.RDRF = false;
+        return SSRDR;
+    });
+
+    io->RegisterWriteHandler(SSU_ADDR_SSRDR, [this](const uint8_t value)
+    {
+        // read only
+    });
+
+    io->RegisterReadHandler(SSU_ADDR_SSSR, [this]()
+    {
+        return SSSR.VALUE;
+    });
+
+    io->RegisterWriteHandler(SSU_ADDR_SSSR, [this](const uint8_t value)
+    {
+        SSSR.VALUE &= value;
+
+        if (!SSER.TE)
+            SSSR.TDRE = true;
+    });
+
+    io->RegisterReadHandler(SSU_ADDR_SSER, [this]()
+    {
+        return SSER.VALUE;
+    });
+
+    io->RegisterWriteHandler(SSU_ADDR_SSER, [this](const uint8_t value)
+    {
+        SSER.VALUE = value;
+    });
+}
+
+void SSU::RegisterPeripheral(const std::shared_ptr<Peripheral>& peripheral, uint16_t port_addr, uint8_t pin_index,
+                             const std::vector<SSUPeripheralPinEntry>& pins)
+{
+    peripherals.push_back({peripheral, port_addr, pin_index, pins});
+}
+
+void SSU::Cycle(uint8_t cycles)
+{
+    ssu_cycles += cycles;
+    if (ssu_cycles >= clock_rates[SSMR->CKS])
+    {
+        ssu_cycles -= clock_rates[SSMR->CKS];
+
+        const auto peripheral = ActivePeripheral();
+        if (peripheral == nullptr)
+            return;
+
+        if (SSER.TE)
+        {
+            if (!SSSR.TDRE)
+            {
+                peripheral->Receive(SSTDR);
+                SSSR.TDRE = true;
+                SSSR.TEND = false;
+            }
+            else
+            {
+                SSSR.TEND = true;
+            }
+        }
+
+        if (SSER.RE)
+        {
+            if (!SSSR.RDRF)
+            {
+                SSRDR = peripheral->Transmit();
+                SSSR.RDRF = true;
+            }
+        }
+    }
+}
+
+std::shared_ptr<Peripheral> SSU::ActivePeripheral()
+{
+    for (auto& [peripheral, port_addr, pin_index, pins] : this->peripherals)
+    {
+        const uint8_t port = this->mem->Read8(port_addr);
+        if ((port & (1 << pin_index)) == 0) // active low
+        {
+            for (auto& pin : pins)
+            {
+                const uint8_t pin_port = mem->Read8(pin.port_addr);
+                const bool value = (pin_port >> pin.pin_index) & 1;
+                peripheral->SetPin(pin.peripheral_pin, value);
+            }
+            return peripheral;
+        }
+    }
+
+    return nullptr;
+}
