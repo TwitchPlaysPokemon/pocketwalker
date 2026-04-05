@@ -1,7 +1,7 @@
 #pragma once
 
-#define PHI_CLK 3686400
-#define PHI_W_CLK 32768
+#define PHI_CLK 3686400 // 3.6864mHz
+#define PHI_W_CLK 32000 // 32kHz
 
 #define IO_HANDLER_READ_UNION(addr, reg) \
     io->RegisterReadHandler(addr, [this]() { return reg.VALUE; })

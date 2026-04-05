@@ -7,7 +7,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/../external/argparse argparse)
 
 file(GLOB_RECURSE SOURCES src/*.cpp src/*.h)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets Multimedia)
 find_package(OpenGL REQUIRED)
 
 if(WIN32)
@@ -37,5 +37,6 @@ target_link_libraries(pocketwalker PRIVATE
         Qt6::Core
         Qt6::Widgets
         Qt6::OpenGLWidgets
+        Qt6::Multimedia
         OpenGL::GL
 )

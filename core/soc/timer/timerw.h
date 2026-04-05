@@ -8,6 +8,9 @@
 #define TIMER_W_ADDR_TCNT 0xF0F6
 
 #define TIMER_W_ADDR_GRA 0xF0F8
+#define TIMER_W_ADDR_GRB 0xF0FA
+#define TIMER_W_ADDR_GRC 0xF0FC
+#define TIMER_W_ADDR_GRD 0xF0FE
 
 union TMRW_t
 {
@@ -57,6 +60,9 @@ public:
     h8300h_ptr<uint16_t> TCNT = nullptr;
 
     h8300h_ptr<uint16_t> GRA = nullptr;
+    h8300h_ptr<uint16_t> GRB = nullptr;
+    h8300h_ptr<uint16_t> GRC = nullptr;
+    h8300h_ptr<uint16_t> GRD = nullptr;
 
 private:
     std::shared_ptr<Interrupts> interrupts;

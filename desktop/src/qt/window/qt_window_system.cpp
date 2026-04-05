@@ -1,10 +1,10 @@
-#include "main_window.h"
+#include "qt_window_system.h"
 #include "widgets/display_widget.h"
 #include <QMenuBar>
 #include <QTimer>
 #include <QApplication>
 
-MainWindow::MainWindow(PocketWalker& emulator, QWidget* parent)
+QtWindowSystem::QtWindowSystem(PocketWalker& emulator, QWidget* parent)
     : QMainWindow(parent), emulator(emulator)
 {
     setWindowTitle("PocketWalker");
@@ -30,7 +30,7 @@ MainWindow::MainWindow(PocketWalker& emulator, QWidget* parent)
     render_timer->start(16);
 }
 
-void MainWindow::keyPressEvent(QKeyEvent* event)
+void QtWindowSystem::keyPressEvent(QKeyEvent* event)
 {
     switch (event->key())
     {
@@ -49,7 +49,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     }
 }
 
-void MainWindow::keyReleaseEvent(QKeyEvent* event)
+void QtWindowSystem::keyReleaseEvent(QKeyEvent* event)
 {
     switch (event->key())
     {
@@ -63,7 +63,14 @@ void MainWindow::keyReleaseEvent(QKeyEvent* event)
         emulator.ReleaseButton(ButtonType::RIGHT);
         break;
     default:
-        QMainWindow::keyPressEvent(event);
+        QMainWindow::keyReleaseEvent(event);
         break;
     }
+}
+
+void QtWindowSystem::closeEvent(QCloseEvent* event)
+{
+    emulator.Stop();
+
+    event->accept();
 }

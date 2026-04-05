@@ -5,27 +5,29 @@
 
 #include "argparse/argparse.hpp"
 #include "core/pokewalker/pocketwalker.h"
-#include "qt/main_window.h"
+#include "qt/window/qt_window_system.h"
+#include "qt/audio/qt_audio_system.h"
 
 int main(int argc, char* argv[])
 {
     argparse::ArgumentParser arguments("pocketwalker");
 
     arguments.add_argument("rom")
-        .help("The path to the PokeWalker rom file.")
-        .default_value("rom.bin");
+             .help("The path to the PokeWalker rom file.")
+             .default_value("rom.bin");
 
     arguments.add_argument("save")
-        .help("The path to your PokeWalker save file.")
-        .default_value("pocketwalker.sav");
+             .help("The path to your PokeWalker save file.")
+             .default_value("pocketwalker.sav");
 
-    try {
+    try
+    {
         arguments.parse_args(argc, argv);
     }
-    catch (const std::exception& err) {
+    catch (const std::exception& err)
+    {
         std::cerr << err.what() << std::endl;
         std::cerr << arguments;
-
         std::println("Press any key to exit...");
         std::cin.get();
         return 1;
@@ -55,14 +57,25 @@ int main(int argc, char* argv[])
         eeprom_file.close();
     }
 
-    PocketWalker emulator(rom_buffer, save_buffer);
-    std::thread emulator_thread([&]{ emulator.Start(); });
-
     QApplication app(argc, argv);
     app.setStyle("Fusion");
 
-    MainWindow window(emulator);
+    PocketWalker emulator(rom_buffer, save_buffer);
+
+    QtAudioSystem audio;
+    emulator.OnSamplePushed([&](BuzzerInformation info)
+    {
+        audio.PushSample(info);
+    });
+
+    QtWindowSystem window(emulator);
     window.show();
 
-    return app.exec();
+    std::thread emulator_thread([&] { emulator.Start(); });
+
+    app.exec();
+
+    emulator_thread.join();
+
+    return 0;
 }

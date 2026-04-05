@@ -6,6 +6,7 @@
 #include <print>
 #include <thread>
 
+#include "defines.h"
 #include "core/utils/logger.h"
 
 H838606::H838606(RomBuffer rom_buffer)
@@ -29,34 +30,18 @@ H838606::H838606(RomBuffer rom_buffer)
     timer_w = std::make_shared<TimerW>(memory, interrupts);
     timer_w->RegisterIOHandlers(io);
 
-
     rtc = std::make_shared<RTC>(interrupts);
     rtc->RegisterIOHandlers(io);
 }
 
-void H838606::Run()
+uint8_t H838606::Cycle()
 {
-    using namespace std::chrono;
-    using clock = high_resolution_clock;
+    const uint8_t cycles = cpu->Cycle();
+    interrupts->Cycle(cpu);
+    ssu->Cycle(cycles);
+    timer_b1->Cycle(cycles);
+    timer_w->Cycle(cycles);
+    rtc->Cycle(cycles);
 
-    constexpr long long CLK_HZ = 3'686'400;
-    constexpr duration<long long, std::nano> CYCLE_DURATION(1'000'000'000LL / CLK_HZ);
-
-    auto next = clock::now();
-
-    while (true)
-    {
-        const uint8_t cycles = cpu->Cycle();
-        interrupts->Cycle(cpu);
-
-        ssu->Cycle(cycles);
-
-        timer_b1->Cycle(cycles);
-        timer_w->Cycle(cycles);
-
-        rtc->Cycle(cycles);
-
-        next += CYCLE_DURATION * cycles;
-        std::this_thread::sleep_until(next);
-    }
+    return cycles;
 }

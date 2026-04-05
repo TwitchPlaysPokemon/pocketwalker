@@ -19,6 +19,9 @@ TimerW::TimerW(const std::shared_ptr<MemoryInterface>& memory, const std::shared
 
     TCNT = memory->Ptr16(TIMER_W_ADDR_TCNT);
     GRA = memory->Ptr16(TIMER_W_ADDR_GRA);
+    GRB = memory->Ptr16(TIMER_W_ADDR_GRB);
+    GRC = memory->Ptr16(TIMER_W_ADDR_GRC);
+    GRD = memory->Ptr16(TIMER_W_ADDR_GRD);
 }
 
 void TimerW::RegisterIOHandlers(const std::shared_ptr<IO>& io)
