@@ -2,6 +2,8 @@
 
 #include <print>
 
+#include "core/utils/logger.h"
+
 void SSD1854::Receive(uint8_t data)
 {
     if (is_data_mode)
@@ -29,6 +31,8 @@ void SSD1854::Receive(uint8_t data)
             state = SSD1854State::IDLE;
             break;
         case SSD1854State::SET_PAGE_OFFSET:
+            page_offset = data / 8;
+            state = SSD1854State::IDLE;
             break;
         }
 
@@ -58,7 +62,7 @@ void SSD1854::HandleCommand(uint8_t data)
     }
     else if (data >= SSD1854_CMD_COL_HIGH_MIN && data <= SSD1854_CMD_COL_HIGH_MAX)
     {
-        column = (column & 0xF0) | (data & 0x0F);
+        column = (column & 0x0F) | ((data & 0b111) << 4);
         offset = 0;
         state = SSD1854State::IDLE;
     }
@@ -66,9 +70,39 @@ void SSD1854::HandleCommand(uint8_t data)
     {
         state = SSD1854State::SET_CONTRAST;
     }
+    else if (data >= SSD1854_CMD_SET_PAGE_OFFSET_MIN && data <= SSD1854_CMD_SET_PAGE_OFFSET_MAX)
+    {
+        state = SSD1854State::SET_PAGE_OFFSET;
+    }
+    else if (data >= SSD1854_CMD_SET_PAGE_MIN && data <= SSD1854_CMD_SET_PAGE_MAX)
+    {
+        page = data & 0xF;
+        state = SSD1854State::IDLE;
+    }
+    else if (data == SSD1854_CMD_POWER_SAVE_ON)
+    {
+        power_save_mode = true;
+        state = SSD1854State::IDLE;
+    }
+    else if (data == SSD1854_CMD_POWER_SAVE_OFF)
+    {
+        power_save_mode = false;
+        state = SSD1854State::IDLE;
+    }
+    else if (data == SSD1854_CMD_RESET)
+    {
+        column = 0;
+        offset = 0;
+        page = 0;
+        contrast = 20;
+        page_offset = 0;
+        power_save_mode = false;
+        state = SSD1854State::IDLE;
+    }
     else
     {
-        std::println("Invalid LCD Command: 0x{:02X}", data);
+        Log::Warn("Invalid SSD1854 Command: 0x{:02X}", data);
+        state = SSD1854State::IDLE;
     }
 
 }

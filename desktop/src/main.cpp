@@ -1,7 +1,11 @@
 #include <fstream>
 #include <print>
+#include <thread>
+#include <QApplication>
+
 #include "argparse/argparse.hpp"
 #include "core/pokewalker/pocketwalker.h"
+#include "qt/main_window.h"
 
 int main(int argc, char* argv[])
 {
@@ -51,10 +55,14 @@ int main(int argc, char* argv[])
         eeprom_file.close();
     }
 
-
     PocketWalker emulator(rom_buffer, save_buffer);
+    std::thread emulator_thread([&]{ emulator.Start(); });
 
-    emulator.Start();
+    QApplication app(argc, argv);
+    app.setStyle("Fusion");
 
-    return 0;
+    MainWindow window(emulator);
+    window.show();
+
+    return app.exec();
 }

@@ -30,6 +30,7 @@ public:
     explicit M95512(EepromBuffer eeprom_buffer);
     void Receive(uint8_t data) override;
     uint8_t Transmit() override;
+    void Reset() override;
 
 private:
     EepromBuffer eeprom = {};
@@ -39,6 +40,6 @@ private:
     uint8_t status = 0;
     uint8_t high_addr = 0;
     uint8_t low_addr = 0;
-    uint8_t offset = 0;
+    uint16_t offset = 0;
 };
 

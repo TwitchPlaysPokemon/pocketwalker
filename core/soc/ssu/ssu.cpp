@@ -16,14 +16,14 @@ static std::array<uint16_t, 8> clock_rates = {
     2
 };
 
-SSU::SSU(const std::shared_ptr<MemoryInterface>& memory)
+SSU::SSU(const std::shared_ptr<MemoryInterface>& memory, const std::shared_ptr<Interrupts>& interrupts)
 {
     mem = memory;
+    this->interrupts = interrupts;
 
     SSMR = reinterpret_cast<SSMR_t*>(memory->Ptr8(SSU_ADDR_SSMR));
-
-    SSSR.TDRE = true;
 }
+
 
 void SSU::RegisterIOHandlers(const std::shared_ptr<IO>& io)
 {
@@ -65,6 +65,24 @@ void SSU::RegisterIOHandlers(const std::shared_ptr<IO>& io)
 
     IO_HANDLER_READ_UNION(SSU_ADDR_SSER, SSER);
     IO_HANDLER_WRITE_UNION(SSU_ADDR_SSER, SSER);
+
+    io->RegisterReadHandler(SSU_ADDR_PDRB, [this]
+    {
+        return PDRB.VALUE;
+    });
+
+    io->RegisterWriteHandler(SSU_ADDR_PDRB, [this](const uint8_t value)
+    {
+        PDRB.VALUE = value;
+
+        if (PMRB.IRQ0 && PDRB.PB0)
+        {
+            interrupts->IRR1.IRRI0 = true;
+        }
+    });
+
+    IO_HANDLER_READ_UNION(SSU_ADDR_PMRB, PMRB);
+    IO_HANDLER_WRITE_UNION(SSU_ADDR_PMRB, PMRB);
 }
 
 void SSU::RegisterPeripheral(const std::shared_ptr<Peripheral>& peripheral, uint16_t port_addr, uint8_t pin_index,
@@ -122,7 +140,12 @@ std::shared_ptr<Peripheral> SSU::ActivePeripheral()
                 const bool value = (pin_port >> pin.pin_index) & 1;
                 peripheral->SetPin(pin.peripheral_pin, value);
             }
+
             return peripheral;
+        }
+        else
+        {
+            peripheral->Reset();
         }
     }
 

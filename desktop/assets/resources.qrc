@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/shaders">
+        <file alias="framebuffer.vert">shaders/framebuffer.vert</file>
+        <file alias="framebuffer.frag">shaders/framebuffer.frag</file>
+    </qresource>
+</RCC>

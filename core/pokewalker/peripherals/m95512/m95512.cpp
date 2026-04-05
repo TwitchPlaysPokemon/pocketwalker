@@ -48,8 +48,7 @@ void M95512::Receive(uint8_t data)
             offset++;
             offset %= 128;
         }
-
-        state = M95512State::IDLE;
+        return;
     }
 }
 
@@ -59,12 +58,14 @@ uint8_t M95512::Transmit()
     {
     case M95512State::MEMORY:
         {
-            const uint8_t value = is_reading ? eeprom[(high_addr << 8 | low_addr) + offset] : 0xFF;
-            offset++;
-            offset %= 128;
+            if (is_reading)
+            {
+                const uint8_t value = eeprom[(high_addr << 8 | low_addr) + offset];
+                offset++;
+                return value;
+            }
 
-            state = M95512State::IDLE;
-            return value;
+            return 0xFF;
         }
     case M95512State::STATUS:
         state = M95512State::IDLE;
@@ -72,4 +73,10 @@ uint8_t M95512::Transmit()
     default:
         return 0xFF;
     }
+}
+
+void M95512::Reset()
+{
+    state = M95512State::IDLE;
+    offset = 0;
 }

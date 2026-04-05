@@ -20,3 +20,15 @@ void PocketWalker::Start()
 {
     this->soc->Run();
 }
+
+void PocketWalker::PressButton(ButtonType button) const
+{
+    const uint8_t current = soc->memory->Read8(SSU_ADDR_PDRB);
+    soc->memory->Write8(SSU_ADDR_PDRB, current | static_cast<uint8_t>(button));
+}
+
+void PocketWalker::ReleaseButton(ButtonType button) const
+{
+    const uint8_t current = soc->memory->Read8(SSU_ADDR_PDRB);
+    soc->memory->Write8(SSU_ADDR_PDRB, current & ~static_cast<uint8_t>(button));
+}

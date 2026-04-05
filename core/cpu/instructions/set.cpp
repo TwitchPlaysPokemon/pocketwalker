@@ -101,7 +101,19 @@ InstructionSet::InstructionSet() :
                 }
             });
 
-            table.Add(0x0B, 0x05, {
+            table.Add(0x0B, 0x5, {
+                "INC.W #1, Rd",
+                2,
+                {1, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    uint16_t* rd = cpu.reg.Reg16(cpu.bL());
+
+                    *rd = cpu.reg.Inc(*rd, 1);
+                }
+            });
+
+            table.Add(0x0B, 0xD, {
                 "INC.W #2, Rd",
                 2,
                 {1, 0, 0, 0, 0, 0},
@@ -110,6 +122,18 @@ InstructionSet::InstructionSet() :
                     uint16_t* rd = cpu.reg.Reg16(cpu.bL());
 
                     *rd = cpu.reg.Inc(*rd, 2);
+                }
+            });
+
+            table.Add(0x0B, 0x07, {
+                "INC.L #1, ERd",
+                2,
+                {1, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    uint32_t* erd = cpu.reg.Reg32(cpu.bL());
+
+                    *erd = cpu.reg.Inc(*erd, 1);
                 }
             });
 
@@ -297,6 +321,23 @@ InstructionSet::InstructionSet() :
                         [](const CPU& cpu) { return static_cast<uint32_t>((cpu.dH() >> 3) & 1); },
                         [](InstructionTable& table)
                         {
+                            table.Add(0x6F, 0x0, {
+                                "MOV.L @(d:16,ERs), ERd",
+                                6,
+                                {3, 0, 0, 0, 2, 0},
+                                [](CPU& cpu)
+                                {
+                                    const auto disp = static_cast<int16_t>(cpu.ef());
+
+                                    const uint32_t* ers = cpu.reg.Reg32(cpu.dH());
+                                    uint32_t* erd = cpu.reg.Reg32(cpu.dL());
+
+                                    *erd = cpu.mem->Read32(*ers + disp);
+
+                                    cpu.reg.MovFlags(*erd);
+                                }
+                            });
+
                             table.Add(0x6F, 0x1, {
                                 "MOV.L ERs, @(d:16,ERd)",
                                 6,
@@ -328,6 +369,28 @@ InstructionSet::InstructionSet() :
                 }
             });
 
+            table.AddSubtable(0x01, 0xC,
+                [](const CPU& cpu) { return static_cast<uint32_t>(cpu.ab()) << 4 | cpu.cH(); },
+                [](const CPU& cpu) { return static_cast<uint32_t>(cpu.cL()); },
+                [](InstructionTable& table)
+                {
+                    table.Add(0x01C05, 0x2, {
+                        "MULXS.W Rs, ERd",
+                        4,
+                        {2, 0, 0, 0, 0, 20},
+                        [](CPU& cpu)
+                        {
+                            const uint16_t* rs = cpu.reg.Reg16(cpu.dH());
+                            uint32_t* erd = cpu.reg.Reg32(cpu.dL());
+
+                            const int32_t result = static_cast<int32_t>(*erd) * static_cast<int16_t>(*rs);
+                            *erd = result;
+
+                            cpu.reg.flags.Z = result == 0;
+                            cpu.reg.flags.N = result < 0;
+                        }
+                    });
+                });
             table.AddSubtable(0x01, 0xD,
                 [](const CPU& cpu) { return static_cast<uint32_t>(cpu.ab()) << 4 | cpu.cH(); },
                 [](const CPU& cpu) { return static_cast<uint32_t>(cpu.cL()); },
@@ -357,6 +420,50 @@ InstructionSet::InstructionSet() :
         }
     );
 
+    root.AddSubtable(0x1, 0x0,
+        [](const CPU& cpu) { return static_cast<uint32_t>(cpu.a()); },
+        [](const CPU& cpu) { return static_cast<uint32_t>(cpu.bH()); },
+        [](InstructionTable& table)
+        {
+            table.Add(0x10, 0x00, {
+                "SHLL.B Rd",
+                2,
+                {1, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    uint8_t* rd = cpu.reg.Reg8(cpu.bL());
+                    cpu.reg.flags.C = *rd & NEGATIVE_MASK(8);
+                    *rd <<= 1;
+                    cpu.reg.MovFlags(*rd);
+                }
+            });
+
+            table.Add(0x10, 0x01, {
+                "SHLL.W Rd",
+                2,
+                {1, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    uint16_t* rd = cpu.reg.Reg16(cpu.bL());
+                    cpu.reg.flags.C = *rd & NEGATIVE_MASK(16);
+                    *rd <<= 1;
+                    cpu.reg.MovFlags(*rd);
+                }
+            });
+
+            table.Add(0x10, 0x03, {
+                "SHLL.L ERd",
+                2,
+                {1, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    uint32_t* erd = cpu.reg.Reg32(cpu.bL());
+                    cpu.reg.flags.C = *erd & NEGATIVE_MASK(32);
+                    *erd <<= 1;
+                    cpu.reg.MovFlags(*erd);
+                }
+            });
+        });
 
     root.AddSubtable(0x1, 0x1,
         [](const CPU& cpu) { return static_cast<uint32_t>(cpu.a()); },
@@ -451,6 +558,18 @@ InstructionSet::InstructionSet() :
         [](const CPU& cpu) { return static_cast<uint32_t>(cpu.bH()); },
         [](InstructionTable& table)
         {
+            table.Add(0x17, 0x00, {
+                "NOT.B Rd",
+                2,
+                {1, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    uint8_t* rd = cpu.reg.Reg8(cpu.bL());
+                    *rd = ~(*rd);
+                    cpu.reg.MovFlags(*rd);
+                }
+            });
+
             table.Add(0x17, 0x05, {
                 "EXTU.W Rd",
                 2,
@@ -472,6 +591,30 @@ InstructionSet::InstructionSet() :
                     uint32_t* erd = cpu.reg.Reg32(cpu.bL());
                     *erd &= 0xFFFF;
                     cpu.reg.MovFlags(*erd);
+                }
+            });
+
+            table.Add(0x17, 0x08, {
+                "NEG.B Rd",
+                2,
+                {1, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    uint8_t* rd = cpu.reg.Reg8(cpu.bL());
+
+                    *rd = cpu.reg.Sub(static_cast<uint8_t>(0), *rd);
+                }
+            });
+
+            table.Add(0x17, 0x09, {
+                "NEG.W Rd",
+                2,
+                {1, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    uint16_t* rd = cpu.reg.Reg16(cpu.bL());
+
+                    *rd = cpu.reg.Sub(static_cast<uint16_t>(0), *rd);
                 }
             });
 
@@ -623,6 +766,25 @@ InstructionSet::InstructionSet() :
         }
     });
 
+    root.AddSubtable(0x1, 0xF,
+        [](const CPU& cpu) { return static_cast<uint32_t>(cpu.a()); },
+        [](const CPU& cpu) { return static_cast<uint32_t>(cpu.bH()); },
+        [](InstructionTable& table)
+        {
+            table.Add(0x1F, {0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF}, {
+                "CMP.L ERs, ERd",
+                2,
+                {1, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    uint32_t* ers = cpu.reg.Reg32(cpu.bH());
+                    uint32_t* erd = cpu.reg.Reg32(cpu.bL());;
+
+                    cpu.reg.Sub(*erd, *ers);
+                }
+            });
+        });
+
     root.Add(0x2, {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF}, {
         "MOV.B @aa:8, Rd",
         2,
@@ -738,6 +900,66 @@ InstructionSet::InstructionSet() :
         }
     });
 
+    root.Add(0x4, 0xA, {
+        "BPL d:8",
+        2,
+        {2, 0, 0, 0, 0, 0},
+        [](CPU& cpu)
+        {
+            const auto disp = static_cast<int8_t>(cpu.b());
+            if (!cpu.reg.flags.N)
+                cpu.reg.PC += disp;
+        }
+    });
+
+    root.Add(0x4, 0xB, {
+        "BMI d:8",
+        2,
+        {2, 0, 0, 0, 0, 0},
+        [](CPU& cpu)
+        {
+            const auto disp = static_cast<int8_t>(cpu.b());
+            if (cpu.reg.flags.N)
+                cpu.reg.PC += disp;
+        }
+    });
+
+    root.Add(0x4, 0xC, {
+        "BGE d:8",
+        2,
+        {2, 0, 0, 0, 0, 0},
+        [](CPU& cpu)
+        {
+            const auto disp = static_cast<int8_t>(cpu.b());
+            if (cpu.reg.flags.N == cpu.reg.flags.V)
+                cpu.reg.PC += disp;
+        }
+    });
+
+    root.Add(0x4, 0xD, {
+        "BLT d:8",
+        2,
+        {2, 0, 0, 0, 0, 0},
+        [](CPU& cpu)
+        {
+            const auto disp = static_cast<int8_t>(cpu.b());
+            if (cpu.reg.flags.N != cpu.reg.flags.V)
+                cpu.reg.PC += disp;
+        }
+    });
+
+    root.Add(0x4, 0xE, {
+        "BGT d:8",
+        2,
+        {2, 0, 0, 0, 0, 0},
+        [](CPU& cpu)
+        {
+            const auto disp = static_cast<int8_t>(cpu.b());
+            if (!(cpu.reg.flags.Z || (cpu.reg.flags.N != cpu.reg.flags.V)))
+                cpu.reg.PC += disp;
+        }
+    });
+
     root.Add(0x5, 0x0, {
         "MULXU.B Rs, Rd",
         2,
@@ -750,6 +972,27 @@ InstructionSet::InstructionSet() :
             *rd = (*rd & 0xFF) * (*rs);
         }
     });
+
+
+    root.Add(0x5, 0x1, {
+        "DIVXU.B Rs, Rd",
+        2,
+        {1, 0, 0, 0, 0, 12},
+        [](CPU& cpu)
+        {
+            const uint8_t* rs = cpu.reg.Reg8(cpu.bH());
+            uint16_t* rd = cpu.reg.Reg16(cpu.bL());
+
+            const uint16_t quotient = *rd / *rs;
+            const uint16_t remainder = *rd % *rs;
+
+            *rd = (remainder << 8) | quotient;
+
+            cpu.reg.flags.Z = quotient == 0;
+            cpu.reg.flags.N = quotient & NEGATIVE_MASK(8);
+        }
+    });
+
 
     root.Add(0x5, 0x2, {
         "MULXU.W Rs, ERd",
@@ -836,6 +1079,17 @@ InstructionSet::InstructionSet() :
                 }
             });
 
+            table.Add(0x58, 0x03, {
+                "BLS d:16",
+                4,
+                {2, 0, 0, 0, 0, 2},
+                [](CPU& cpu)
+                {
+                    const auto disp = static_cast<int16_t>(cpu.cd());
+                    if (cpu.reg.flags.C || cpu.reg.flags.Z)
+                        cpu.reg.PC += disp;
+                }
+            });
 
             table.Add(0x58, 0x04, {
                 "BCC d:16",
@@ -845,6 +1099,18 @@ InstructionSet::InstructionSet() :
                 {
                     const auto disp = static_cast<int16_t>(cpu.cd());
                     if (!cpu.reg.flags.C)
+                        cpu.reg.PC += disp;
+                }
+            });
+
+            table.Add(0x58, 0x05, {
+                "BCS d:16",
+                4,
+                {2, 0, 0, 0, 0, 2},
+                [](CPU& cpu)
+                {
+                    const auto disp = static_cast<int16_t>(cpu.cd());
+                    if (cpu.reg.flags.C)
                         cpu.reg.PC += disp;
                 }
             });
@@ -940,6 +1206,60 @@ InstructionSet::InstructionSet() :
         true
     });
 
+    root.Add(0x6, 0x0, {
+        "BSET Rn, Rd",
+        2,
+        {1, 0, 0, 0, 0, 0},
+        [](CPU& cpu)
+        {
+            const uint8_t* rn = cpu.reg.Reg8(cpu.bH());
+            uint8_t* rd = cpu.reg.Reg8(cpu.bL());
+
+            *rd |= 1 << *rn;
+        }
+    });
+
+    root.Add(0x6, 0x4, {
+        "OR.W Rs, Rd",
+        2,
+        {1, 0, 0, 1, 0, 0},
+        [](CPU& cpu)
+        {
+            const uint16_t* rs = cpu.reg.Reg16(cpu.bH());
+            uint16_t* rd = cpu.reg.Reg16(cpu.bL());
+
+            *rd |= *rs;
+            cpu.reg.MovFlags(*rd);
+        }
+    });
+
+    root.Add(0x6, 0x5, {
+        "XOR.W Rs, Rd",
+        2,
+        {1, 0, 0, 1, 0, 0},
+        [](CPU& cpu)
+        {
+            const uint16_t* rs = cpu.reg.Reg16(cpu.bH());
+            uint16_t* rd = cpu.reg.Reg16(cpu.bL());
+
+            *rd ^= *rs;
+            cpu.reg.MovFlags(*rd);
+        }
+    });
+
+    root.Add(0x6, 0x6, {
+        "AND.W Rs, Rd",
+        2,
+        {1, 0, 0, 1, 0, 0},
+        [](CPU& cpu)
+        {
+            const uint16_t* rs = cpu.reg.Reg16(cpu.bH());
+            uint16_t* rd = cpu.reg.Reg16(cpu.bL());
+
+            *rd &= *rs;
+            cpu.reg.MovFlags(*rd);
+        }
+    });
 
     root.AddSubtable(0x6, 0x8,
         [](const CPU& cpu) { return static_cast<uint32_t>(cpu.a()); },
@@ -1350,6 +1670,20 @@ InstructionSet::InstructionSet() :
                 }
             });
 
+            table.Add(0x79, 0x4, {
+                "OR.W #xx:16, Rd",
+                4,
+                {2, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    const uint16_t imm = cpu.cd();
+                    uint16_t* rd = cpu.reg.Reg16(cpu.bL());
+
+                    *rd |= imm;
+                    cpu.reg.MovFlags(*rd);
+                }
+            });
+
             table.Add(0x79, 0x06, {
                 "AND.W #xx:16, Rd",
                 4,
@@ -1404,6 +1738,28 @@ InstructionSet::InstructionSet() :
         [](const CPU& cpu) { return static_cast<uint32_t>(cpu.cL()); },
         [](InstructionTable& table)
         {
+            table.AddPattern(0x7D006, 0xFF0FF, 0x07, 0xFF, {
+                "BST #xx:3, @ERd",
+                4,
+                {2, 0, 0, 2, 0, 0},
+                [](CPU& cpu)
+                {
+                    const uint32_t* erd = cpu.reg.Reg32(cpu.bH());
+                    const uint8_t imm = cpu.dH();
+
+                    const uint8_t value = cpu.mem->Read8(*erd);
+
+                    if (cpu.reg.flags.C)
+                    {
+                        cpu.mem->Write8(*erd, value | (1 << imm));
+                    }
+                    else
+                    {
+                        cpu.mem->Write8(*erd, value & ~(1 << imm));
+                    }
+                }
+            });
+
             table.AddPattern(0x7D007, 0xFF0FF, 0x00, 0xFF, {
                 "BSET #xx:3, @ERd",
                 4,
@@ -1527,6 +1883,20 @@ InstructionSet::InstructionSet() :
             uint8_t* rd = cpu.reg.Reg8(cpu.aL());
 
             *rd |= imm;
+            cpu.reg.MovFlags(*rd);
+        }
+    });
+
+    root.Add(0xD, {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF}, {
+        "XOR.B #xx:8, Rd",
+        2,
+        {1, 0, 0, 0, 0, 0},
+        [](CPU& cpu)
+        {
+            const uint8_t imm = cpu.b();
+            uint8_t* rd = cpu.reg.Reg8(cpu.aL());
+
+            *rd ^= imm;
             cpu.reg.MovFlags(*rd);
         }
     });

@@ -2,6 +2,7 @@
 
 #include <print>
 
+#include "core/utils/logger.h"
 #include "instructions/set.h"
 
 static InstructionSet instruction_set = {};
@@ -36,6 +37,15 @@ uint8_t CPU::Cycle()
         reg.PC += 2;
     }
 
+    // add initial watts
+    if (reg.PC == 0x9A4E) [[unlikely]]
+    {
+        if (mem->Read16(0xF78E) == 0)
+        {
+            mem->Write16(0xF78E, 500);
+        }
+    }
+
     if (!sleep)
     {
         uint16_t exec_pc = this->reg.PC;
@@ -47,7 +57,7 @@ uint8_t CPU::Cycle()
             this->reg.PC += instruction->size;
 
         if (print_instructions)
-            std::println("0x{:04X} {}", exec_pc, instruction->name);
+            Log::Info("0x{:04X} {}", exec_pc, instruction->name);
 
         return instruction->cycles.Count();
     }

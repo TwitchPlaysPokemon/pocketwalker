@@ -3,6 +3,7 @@
 #include "interrupts/interrupts.h"
 #include "memory/bus.h"
 #include "memory/regions/rom.h"
+#include "rtc/rtc.h"
 #include "ssu/ssu.h"
 #include "timer/timerb1.h"
 
@@ -21,4 +22,6 @@ public:
     std::shared_ptr<SSU> ssu = nullptr;
 
     std::shared_ptr<TimerB1> timer_b1 = nullptr;
+
+    std::shared_ptr<RTC> rtc = nullptr;
 };
