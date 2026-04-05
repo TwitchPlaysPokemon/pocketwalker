@@ -1826,6 +1826,19 @@ InstructionSet::InstructionSet() :
                     *erd = cpu.reg.Add(*erd, imm);
                 }
             });
+
+            table.Add(0x7A, 0x02, {
+                "CMP.L #xx:32, ERd",
+                6,
+                {3, 0, 0, 0, 0, 0},
+                [](CPU& cpu)
+                {
+                    const uint32_t imm = (cpu.cd() << 16) | cpu.ef();
+                    uint32_t* erd = cpu.reg.Reg32(cpu.bL());
+
+                    cpu.reg.Sub(*erd, imm);
+                }
+            });
         });
 
     root.AddSubtable(0x7, 0xD,

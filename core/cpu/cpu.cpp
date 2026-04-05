@@ -67,10 +67,14 @@ uint8_t CPU::Cycle()
 
 void CPU::Interrupt(uint16_t vector_address)
 {
+    const uint16_t target_pc = mem->Read16(vector_address);
+    if (target_pc == 0xFFFF)
+        return;
+
     Push16(reg.flags.CCR << 8);
     Push16(reg.PC);
 
-    reg.PC = mem->Read16(vector_address);
+    reg.PC = target_pc;
     reg.flags.I = true;
     sleep = false;
 }

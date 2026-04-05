@@ -5,6 +5,7 @@
 #include "core/soc/memory/regions/io.h"
 
 #define INTERRUPT_ADDR_RTCFLG 0xF067
+#define INTERRUPT_ADDR_RTCCR2 0xF06D
 
 #define INTERRUPT_ADDR_TIERW 0xF0F2
 #define INTERRUPT_ADDR_TSRW 0xF0F3
@@ -18,9 +19,14 @@
 
 #define INTERRUPT_VECTOR_ADDR_IRQ0 0x0020
 
-#define INTERRUPT_VECTOR_ADDR_RTC_QUARTER_SEC 0x002e
+#define INTERRUPT_VECTOR_ADDR_RTC_QUARTER_SEC 0x002E
 #define INTERRUPT_VECTOR_ADDR_RTC_HALF_SEC 0x0030
 #define INTERRUPT_VECTOR_ADDR_RTC_SEC 0x0032
+#define INTERRUPT_VECTOR_ADDR_RTC_MIN 0x0034
+#define INTERRUPT_VECTOR_ADDR_RTC_HOUR 0x0036
+#define INTERRUPT_VECTOR_ADDR_RTC_DAY 0x0038
+#define INTERRUPT_VECTOR_ADDR_RTC_WEEK 0x003A
+#define INTERRUPT_VECTOR_ADDR_RTC_FREE 0x003C
 
 #define INTERRUPT_VECTOR_ADDR_TIMER_B1 0x0042
 #define INTERRUPT_VECTOR_ADDR_TIMER_W 0x0046
@@ -101,6 +107,23 @@ union RTCFLG_t
     };
 };
 
+union RTCCR2_t
+{
+    uint8_t VALUE;
+
+    struct
+    {
+        uint8_t SEIE025 : 1;
+        uint8_t SEIE05 : 1;
+        uint8_t SEIE1 : 1;
+        uint8_t MNIE : 1;
+        uint8_t HRIE : 1;
+        uint8_t DYIE : 1;
+        uint8_t WKIE : 1;
+        uint8_t FOIE : 1;
+    };
+};
+
 union TIERW_t
 {
     uint8_t VALUE;
@@ -145,6 +168,7 @@ public:
     IRR2_t IRR2 = {};
 
     RTCFLG_t RTCFLG = {};
+    RTCCR2_t RTCCR2 = {};
 
     TIERW_t TIERW = {};
     TSRW_t TSRW = {};
