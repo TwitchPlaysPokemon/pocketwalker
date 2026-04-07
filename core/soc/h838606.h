@@ -10,6 +10,45 @@
 #include "timer/timerb1.h"
 #include "timer/timerw.h"
 
+#define SOC_ADDR_CKSTPR1 0xFFFA
+#define SOC_ADDR_CKSTPR2 0xFFFB
+
+union CKSTPR1_t
+{
+    uint8_t VALUE;
+
+    struct
+    {
+        uint8_t RTCCKSTP : 1;
+        uint8_t FROMCKSTP : 1;
+        uint8_t TB1CKSTP : 1;
+        uint8_t  : 1;
+        uint8_t ADCKSTP : 1;
+        uint8_t  : 1;
+        uint8_t S3CKSTP : 1;
+        uint8_t  : 1;
+    };
+};
+
+
+union CKSTPR2_t
+{
+    uint8_t VALUE;
+
+    struct
+    {
+        uint8_t  : 1;
+        uint8_t COMPCKSTP : 1;
+        uint8_t WDCKSTP : 1;
+        uint8_t AECCKSTP : 1;
+        uint8_t SSUCKSTP : 1;
+        uint8_t IICCKSTP : 1;
+        uint8_t TWCKSTP : 1;
+        uint8_t  : 1;
+    };
+};
+
+
 class H838606
 {
 public:
@@ -29,4 +68,7 @@ public:
 
     std::shared_ptr<RTC> rtc = nullptr;
     std::shared_ptr<ADC> adc = nullptr;
+
+    CKSTPR1_t CKSTPR1 = {};
+    CKSTPR2_t CKSTPR2 = {};
 };

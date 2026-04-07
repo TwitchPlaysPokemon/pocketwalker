@@ -35,19 +35,33 @@ H838606::H838606(RomBuffer rom_buffer)
 
     adc = std::make_shared<ADC>(memory);
     adc->RegisterIOHandlers(io);
+
+    IO_HANDLER_READ_UNION(SOC_ADDR_CKSTPR1, CKSTPR1);
+    IO_HANDLER_WRITE_UNION(SOC_ADDR_CKSTPR1, CKSTPR1);
+    
+    IO_HANDLER_READ_UNION(SOC_ADDR_CKSTPR2, CKSTPR2);
+    IO_HANDLER_WRITE_UNION(SOC_ADDR_CKSTPR2, CKSTPR2);
 }
 
 uint8_t H838606::Cycle()
 {
     const uint8_t cycles = cpu->Cycle();
     interrupts->Cycle(cpu);
-    ssu->Cycle(cycles);
 
-    // TODO clock stop enables for all components
-    timer_b1->Cycle(cycles);
-    timer_w->Cycle(cycles);
-    rtc->Cycle(cycles);
-    adc->Cycle(cycles);
+    if (CKSTPR2.SSUCKSTP)
+        ssu->Cycle(cycles);
+
+    if (CKSTPR1.TB1CKSTP)
+        timer_b1->Cycle(cycles);
+
+    if (CKSTPR2.TWCKSTP)
+        timer_w->Cycle(cycles);
+
+    if (CKSTPR1.RTCCKSTP)
+        rtc->Cycle(cycles);
+
+    if (CKSTPR1.ADCKSTP)
+        adc->Cycle(cycles);
 
     return cycles;
 }
