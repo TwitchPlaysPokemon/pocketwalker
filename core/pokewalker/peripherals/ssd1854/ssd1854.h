@@ -35,9 +35,10 @@ enum class SSD1854State
 class SSD1854 : public Peripheral
 {
 public:
+    SSD1854();
+
     void Receive(uint8_t data) override;
     uint8_t Transmit() override;
-    void SetPin(uint8_t pin, bool value) override;
 
     Memory<0x3200> vram = {};
     uint8_t page_offset = 0;
@@ -55,4 +56,3 @@ private:
 
     bool is_data_mode = false;
 };
-

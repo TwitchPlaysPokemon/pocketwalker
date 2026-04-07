@@ -4,25 +4,33 @@
 
 #include "core/utils/logger.h"
 
+SSD1854::SSD1854()
+{
+    OnInputPin += [this](PinEvent event)
+    {
+        if (event.pin == SSD1854_PIN_DC)
+            is_data_mode = event.value;
+    };
+}
+
 void SSD1854::Receive(uint8_t data)
 {
     if (is_data_mode)
     {
-
-        const uint16_t address = (page * SSD1854_TOTAL_COLUMNS * SSD1854_COLUMN_SIZE) + (column * SSD1854_COLUMN_SIZE) + offset;
+        const uint16_t address = (page * SSD1854_TOTAL_COLUMNS * SSD1854_COLUMN_SIZE) + (column * SSD1854_COLUMN_SIZE) +
+            offset;
         vram.Write8(address, data);
 
         if (offset == 1)
-        {
             column++;
-        }
 
         offset++;
         offset %= 2;
     }
     else
     {
-        switch (state) {
+        switch (state)
+        {
         case SSD1854State::IDLE:
             HandleCommand(data);
             break;
@@ -35,21 +43,12 @@ void SSD1854::Receive(uint8_t data)
             state = SSD1854State::IDLE;
             break;
         }
-
     }
 }
 
 uint8_t SSD1854::Transmit()
 {
     return 0xFF;
-}
-
-void SSD1854::SetPin(uint8_t pin, bool value)
-{
-    if (pin == SSD1854_PIN_DC)
-    {
-        is_data_mode = value;
-    }
 }
 
 void SSD1854::HandleCommand(uint8_t data)
@@ -104,5 +103,4 @@ void SSD1854::HandleCommand(uint8_t data)
         Log::Warn("Invalid SSD1854 Command: 0x{:02X}", data);
         state = SSD1854State::IDLE;
     }
-
 }

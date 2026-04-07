@@ -39,6 +39,10 @@ void Interrupts::Cycle(const std::shared_ptr<CPU>& cpu)
     {
         cpu->Interrupt(INTERRUPT_VECTOR_ADDR_IRQ0);
     }
+    else if (IENR1.IEN1 && IRR1.IRRI1)
+    {
+        cpu->Interrupt(INTERRUPT_VECTOR_ADDR_IRQ1);
+    }
     else if (IENR1.IENRTC && RTCCR2.SEIE025 && RTCFLG.SEIFG025)
     {
         cpu->Interrupt(INTERRUPT_VECTOR_ADDR_RTC_QUARTER_SEC);

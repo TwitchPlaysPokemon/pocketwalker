@@ -18,12 +18,6 @@ bool print_instructions = false;
 
 uint8_t CPU::Cycle()
 {
-    // temporarily skip accelerometer sleep until interrupt has been implemented
-    if (reg.PC == 0x7700) [[unlikely]]
-    {
-        //reg.PC += 2;
-    }
-
     // add initial watts
     if (reg.PC == 0x9A4E) [[unlikely]]
     {

@@ -8,6 +8,7 @@
 #include "core/soc/interrupts/interrupts.h"
 #include "core/soc/memory/regions/io.h"
 
+#define SSU_ADDR_PFCR 0xF085
 #define SSU_ADDR_SSMR 0xF0E2
 #define SSU_ADDR_SSER 0xF0E3
 #define SSU_ADDR_SSSR 0xF0E4
@@ -83,6 +84,19 @@ union PDRB_t
     };
 };
 
+union PFCR_t
+{
+    uint8_t VALUE;
+
+    struct
+    {
+        uint8_t IRQ0S : 2;
+        uint8_t IRQ1S : 2;
+        uint8_t SSUS : 1;
+        uint8_t  : 3;
+    };
+};
+
 
 union PMRB_t
 {
@@ -98,20 +112,19 @@ union PMRB_t
     };
 };
 
-
-struct SSUPeripheralPinEntry
-{
-    uint16_t port_addr;
-    uint8_t pin_index;
-    uint8_t peripheral_pin;
-};
-
 struct SSUPeripheralEntry
 {
     std::shared_ptr<Peripheral> peripheral;
     uint16_t port_addr;
     uint8_t pin_index;
-    std::vector<SSUPeripheralPinEntry> pins;
+};
+
+struct SSUInputPinEntry
+{
+    std::shared_ptr<Peripheral> peripheral;
+    uint16_t port_addr;
+    uint8_t pin_index;
+    uint8_t peripheral_pin;
 };
 
 class SSU
@@ -121,14 +134,28 @@ public:
 
     void RegisterIOHandlers(const std::shared_ptr<IO>& io);
 
-    void RegisterPeripheral(const std::shared_ptr<Peripheral>& peripheral, uint16_t port_addr, uint8_t pin_index,
-                            const std::vector<
-                                SSUPeripheralPinEntry>& pins = {});
+    void RegisterPeripheral(
+        const std::shared_ptr<Peripheral>& peripheral,
+        uint16_t cs_port_addr,
+        uint8_t cs_pin_index);
+
+    void RegisterInputPin(
+        const std::shared_ptr<Peripheral>& peripheral,
+        uint16_t port_addr,
+        uint8_t pin_index,
+        uint8_t peripheral_pin);
+
+    void RegisterOutputPin(
+        const std::shared_ptr<Peripheral>& peripheral,
+        uint8_t peripheral_pin,
+        uint16_t port_addr,
+        uint8_t pin_index);
 
     void Cycle(uint8_t cycles);
 
     PDRB_t PDRB = {};
     PMRB_t PMRB = {};
+    PFCR_t PFCR = {};
 
     SSMR_t SSMR = {};
     SSER_t SSER = {};
@@ -143,6 +170,7 @@ private:
     std::shared_ptr<MemoryInterface> mem = nullptr;
 
     std::vector<SSUPeripheralEntry> peripherals;
+    std::vector<SSUInputPinEntry> input_pins;
 
     uint32_t ssu_cycles = 0;
 };

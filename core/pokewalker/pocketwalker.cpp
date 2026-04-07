@@ -15,10 +15,12 @@ PocketWalker::PocketWalker(RomBuffer rom_buffer, EepromBuffer save_buffer)
     this->buzzer = std::make_shared<Buzzer>(this->soc->timer_w);
 
     this->soc->ssu->RegisterPeripheral(this->bma150, SSU_ADDR_PDR9, 0);
+    this->soc->ssu->RegisterOutputPin(this->bma150, BMA150_PIN_INT, SSU_ADDR_PDRB, 1);
+
     this->soc->ssu->RegisterPeripheral(this->m95512, SSU_ADDR_PDR1, 2);
-    this->soc->ssu->RegisterPeripheral(this->ssd1854, SSU_ADDR_PDR1, 0, {
-        {SSU_ADDR_PDR1, 1, SSD1854_PIN_DC}
-    });
+
+    this->soc->ssu->RegisterPeripheral(this->ssd1854, SSU_ADDR_PDR1, 0);
+    this->soc->ssu->RegisterInputPin(this->ssd1854, SSU_ADDR_PDR1, 1, SSD1854_PIN_DC);
 }
 
 void PocketWalker::Start()

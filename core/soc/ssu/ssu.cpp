@@ -75,76 +75,110 @@ void SSU::RegisterIOHandlers(const std::shared_ptr<IO>& io)
     {
         PDRB.VALUE = value;
 
-        // TODO proper usage of PFCR reg to determine irq0/1 sources
-        if (PMRB.IRQ0 && PDRB.PB0)
-        {
+        if (PFCR.IRQ0S == 0b00 && PDRB.PB0)
             interrupts->IRR1.IRRI0 = true;
-        }
 
-        if (PMRB.IRQ1 && PDRB.PB1)
-        {
+        if (PFCR.IRQ1S == 0b00 && PDRB.PB1)
             interrupts->IRR1.IRRI1 = true;
-        }
     });
 
     IO_HANDLER_READ_UNION(SSU_ADDR_PMRB, PMRB);
     IO_HANDLER_WRITE_UNION(SSU_ADDR_PMRB, PMRB);
+
+    IO_HANDLER_READ_UNION(SSU_ADDR_PFCR, PFCR);
+    IO_HANDLER_WRITE_UNION(SSU_ADDR_PFCR, PFCR);
 }
 
-void SSU::RegisterPeripheral(const std::shared_ptr<Peripheral>& peripheral, uint16_t port_addr, uint8_t pin_index,
-                             const std::vector<SSUPeripheralPinEntry>& pins)
+void SSU::RegisterPeripheral(
+    const std::shared_ptr<Peripheral>& peripheral,
+    uint16_t cs_port_addr,
+    uint8_t cs_pin_index)
 {
-    peripherals.push_back({peripheral, port_addr, pin_index, pins});
+    peripherals.push_back({peripheral, cs_port_addr, cs_pin_index});
+}
+
+void SSU::RegisterInputPin(
+    const std::shared_ptr<Peripheral>& peripheral,
+    uint16_t port_addr,
+    uint8_t pin_index,
+    uint8_t peripheral_pin)
+{
+    input_pins.push_back({peripheral, port_addr, pin_index, peripheral_pin});
+}
+
+void SSU::RegisterOutputPin(
+    const std::shared_ptr<Peripheral>& peripheral,
+    uint8_t peripheral_pin,
+    uint16_t port_addr,
+    uint8_t pin_index)
+{
+    peripheral->OnOutputPin += [this, peripheral_pin, port_addr, pin_index](PinEvent event)
+    {
+        if (event.pin != peripheral_pin)
+            return;
+
+        uint8_t port = mem->Read8(port_addr);
+        if (event.value)
+            port |= (1 << pin_index);
+        else
+            port &= ~(1 << pin_index);
+        mem->Write8(port_addr, port);
+    };
 }
 
 void SSU::Cycle(uint8_t cycles)
 {
+    for (const auto& entry : peripherals)
+        entry.peripheral->Cycle(cycles);
+
     ssu_cycles += cycles;
-    if (ssu_cycles >= clock_rates[SSMR.CKS])
+    if (ssu_cycles < clock_rates[SSMR.CKS])
+        return;
+
+    ssu_cycles -= clock_rates[SSMR.CKS];
+
+    const auto peripheral = ActivePeripheral();
+    if (peripheral == nullptr)
+        return;
+
+    if (SSER.TE)
     {
-        ssu_cycles -= clock_rates[SSMR.CKS];
-
-        const auto peripheral = ActivePeripheral();
-        if (peripheral == nullptr)
-            return;
-
-        if (SSER.TE)
+        if (!SSSR.TDRE)
         {
-            if (!SSSR.TDRE)
-            {
-                peripheral->Receive(SSTDR);
-                SSSR.TDRE = true;
-                SSSR.TEND = false;
-            }
-            else
-            {
-                SSSR.TEND = true;
-            }
+            peripheral->Receive(SSTDR);
+            SSSR.TDRE = true;
+            SSSR.TEND = false;
         }
-
-        if (SSER.RE)
+        else
         {
-            if (!SSSR.RDRF)
-            {
-                SSRDR = peripheral->Transmit();
-                SSSR.RDRF = true;
-            }
+            SSSR.TEND = true;
+        }
+    }
+
+    if (SSER.RE)
+    {
+        if (!SSSR.RDRF)
+        {
+            SSRDR = peripheral->Transmit();
+            SSSR.RDRF = true;
         }
     }
 }
 
 std::shared_ptr<Peripheral> SSU::ActivePeripheral()
 {
-    for (auto& [peripheral, port_addr, pin_index, pins] : this->peripherals)
+    for (auto& [peripheral, port_addr, pin_index] : peripherals)
     {
-        const uint8_t port = this->mem->Read8(port_addr);
+        const uint8_t port = mem->Read8(port_addr);
         if ((port & (1 << pin_index)) == 0) // active low
         {
-            for (auto& pin : pins)
+            for (auto& pin : input_pins)
             {
+                if (pin.peripheral != peripheral)
+                    continue;
                 const uint8_t pin_port = mem->Read8(pin.port_addr);
                 const bool value = (pin_port >> pin.pin_index) & 1;
-                peripheral->SetPin(pin.peripheral_pin, value);
+                peripheral->OnInputPin({pin.peripheral_pin, value});
             }
 
             return peripheral;
