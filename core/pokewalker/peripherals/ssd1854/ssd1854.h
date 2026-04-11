@@ -23,7 +23,11 @@
 #define SSD1854_CMD_RESET 0xE2
 
 #define SSD1854_COLUMN_SIZE 2
-#define SSD1854_TOTAL_COLUMNS 0xFF
+#define SSD1854_TOTAL_COLUMNS 128
+#define SSD1854_PAGE_SIZE 8
+#define SSD1854_TOTAL_PAGES 21
+
+#define SSD1854_MEM_SIZE (SSD1854_TOTAL_COLUMNS * SSD1854_COLUMN_SIZE * SSD1854_PAGE_SIZE * SSD1854_TOTAL_PAGES)
 
 enum class SSD1854State
 {
@@ -34,7 +38,7 @@ enum class SSD1854State
 
 struct SSD1854DrawInfo
 {
-    Memory<0x3200> vram = {};
+    Memory<SSD1854_MEM_SIZE> vram = {};
     uint8_t page_offset = 0;
     uint8_t contrast = 20;
     bool power_save_mode = false;

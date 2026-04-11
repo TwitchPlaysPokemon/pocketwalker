@@ -21,15 +21,19 @@ class DisplayWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     Q_OBJECT
 
 public:
-    explicit DisplayWidget(PocketWalker& emulator, QWidget* parent = nullptr);
+    explicit DisplayWidget(QWidget* parent = nullptr);
+
+    void setEmulator(PocketWalker* emulator);
 
 protected:
     void initializeGL() override;
+    void drawPixels(const uint8_t* pixels);
     void paintGL() override;
     void resizeGL(int w, int h) override;
 
 private:
-    PocketWalker& emulator;
+    PocketWalker* emulator = nullptr;
+    uint8_t splash[1536] = {};
     QOpenGLShaderProgram shader;
     GLuint fb_texture = 0;
     GLuint vao = 0;

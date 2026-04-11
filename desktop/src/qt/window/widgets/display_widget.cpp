@@ -1,5 +1,6 @@
 #include "display_widget.h"
 #include <cstring>
+#include <QFile>
 
 #define WIN_W (SCREEN_W * SCALE + MARGIN * 2)
 #define WIN_H (SCREEN_H * SCALE + MARGIN * 2)
@@ -9,10 +10,22 @@
 #define Y0 (static_cast<float>(MARGIN) / WIN_H * 2.0f - 1.0f)
 #define Y1 (Y0 + static_cast<float>(SCREEN_H * SCALE) / WIN_H * 2.0f)
 
-DisplayWidget::DisplayWidget(PocketWalker& emulator, QWidget* parent)
-    : QOpenGLWidget(parent), emulator(emulator)
+DisplayWidget::DisplayWidget(QWidget* parent)
+    : QOpenGLWidget(parent)
 {
     setFixedSize(WIN_W, WIN_H);
+
+    if (QFile splash_file(":/data/splash.bin"); splash_file.open(QIODevice::ReadOnly))
+    {
+        const QByteArray data = splash_file.readAll();
+        memcpy(splash, data.constData(), sizeof(splash));
+    }
+}
+
+void DisplayWidget::setEmulator(PocketWalker* emu)
+{
+    emulator = emu;
+    was_last_frame_power_save = false;
 }
 
 void DisplayWidget::initializeGL()
@@ -50,6 +63,21 @@ void DisplayWidget::initializeGL()
     glBindVertexArray(0);
 }
 
+void DisplayWidget::drawPixels(const uint8_t* pixels)
+{
+    glBindTexture(GL_TEXTURE_2D, fb_texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_W, SCREEN_H, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    shader.bind();
+    shader.setUniformValue("uTexture", 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, fb_texture);
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+    shader.release();
+}
+
 void DisplayWidget::paintGL()
 {
     glClearColor(LCD_PALETTE_0 / 255.0f, LCD_PALETTE_0 / 255.0f, LCD_PALETTE_0 / 255.0f, 1.0f);
@@ -57,7 +85,27 @@ void DisplayWidget::paintGL()
 
     uint8_t pixels[SCREEN_W * SCREEN_H * 4];
 
-    SSD1854DrawInfo* draw_info = emulator.GetDrawInfo();
+    if (!emulator)
+    {
+        for (int y = 0; y < SCREEN_H; y++)
+        {
+            const int page_offset = (y / 8) * 96 * SSD1854_COLUMN_SIZE;
+            const int bit = y % 8;
+            for (int x = 0; x < SCREEN_W; x++)
+            {
+                const int base = SSD1854_COLUMN_SIZE * x + page_offset;
+                const uint8_t idx = (((splash[base]     >> bit) & 1) << 1) |
+                                     ((splash[base + 1] >> bit) & 1);
+                const int i = (y * SCREEN_W + x) * 4;
+                pixels[i] = pixels[i+1] = pixels[i+2] = LCD_PALETTE[idx];
+                pixels[i+3] = 255;
+            }
+        }
+        drawPixels(pixels);
+        return;
+    }
+
+    SSD1854DrawInfo* draw_info = emulator->GetDrawInfo();
 
     if (draw_info->power_save_mode)
     {
@@ -66,8 +114,7 @@ void DisplayWidget::paintGL()
             memset(pixels, LCD_PALETTE_0, sizeof(pixels));
             for (int i = 3; i < static_cast<int>(sizeof(pixels)); i += 4)
                 pixels[i] = 255;
-            glBindTexture(GL_TEXTURE_2D, fb_texture);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_W, SCREEN_H, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+            drawPixels(pixels);
         }
         was_last_frame_power_save = true;
     }
@@ -83,25 +130,13 @@ void DisplayWidget::paintGL()
                 const int base = SSD1854_COLUMN_SIZE * x + page_offset;
                 const uint8_t palette_index = (((draw_info->vram.Read8(base) >> bit_offset) & 1) << 1) | ((draw_info->vram.Read8(base + 1) >> bit_offset) & 1);
                 const int idx = (y * SCREEN_W + x) * 4;
-                pixels[idx + 0] = LCD_PALETTE[palette_index];
-                pixels[idx + 1] = LCD_PALETTE[palette_index];
-                pixels[idx + 2] = LCD_PALETTE[palette_index];
-                pixels[idx + 3] = 255;
+                pixels[idx] = pixels[idx+1] = pixels[idx+2] = LCD_PALETTE[palette_index];
+                pixels[idx+3] = 255;
             }
         }
-        glBindTexture(GL_TEXTURE_2D, fb_texture);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_W, SCREEN_H, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+        drawPixels(pixels);
         was_last_frame_power_save = false;
     }
-
-    shader.bind();
-    shader.setUniformValue("uTexture", 0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, fb_texture);
-    glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
-    shader.release();
 }
 
 void DisplayWidget::resizeGL(int w, int h)

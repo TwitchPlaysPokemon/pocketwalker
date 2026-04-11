@@ -8,7 +8,7 @@
 
 typedef union flags
 {
-    uint8_t CCR = 0b10000000; // interrupt flag is set by default
+    uint8_t CCR = 0;
     struct
     {
         bool C : 1;
