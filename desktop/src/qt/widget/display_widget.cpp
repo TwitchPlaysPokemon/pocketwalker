@@ -3,18 +3,19 @@
 #include <QFile>
 #include "desktop/src/qt/settings/app_settings.h"
 
-#define WIN_W (SCREEN_W * SCALE + MARGIN * 2)
-#define WIN_H (SCREEN_H * SCALE + MARGIN * 2)
-
-#define X0 (static_cast<float>(MARGIN) / WIN_W * 2.0f - 1.0f)
-#define X1 (X0 + static_cast<float>(SCREEN_W * SCALE) / WIN_W * 2.0f)
-#define Y0 (static_cast<float>(MARGIN) / WIN_H * 2.0f - 1.0f)
-#define Y1 (Y0 + static_cast<float>(SCREEN_H * SCALE) / WIN_H * 2.0f)
+static constexpr float VERTS[] = {
+    -1.0f, 1.0f, 0.0f, 0.0f,
+    1.0f, 1.0f, 1.0f, 0.0f,
+    1.0f, -1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f, 0.0f, 0.0f,
+    1.0f, -1.0f, 1.0f, 1.0f,
+    -1.0f, -1.0f, 0.0f, 1.0f,
+};
 
 DisplayWidget::DisplayWidget(QWidget* parent)
     : QOpenGLWidget(parent)
 {
-    setFixedSize(WIN_W, WIN_H);
+    setMinimumSize((SCREEN_W + MARGIN * 2) * 4, (SCREEN_H + MARGIN * 2) * 4);
 
     if (QFile splash_file(":/data/splash.bin"); splash_file.open(QIODevice::ReadOnly))
     {
@@ -43,20 +44,11 @@ void DisplayWidget::initializeGL()
     shader.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/framebuffer.frag");
     shader.link();
 
-    constexpr float verts[] = {
-        X0, Y1, 0.0f, 0.0f,
-        X1, Y1, 1.0f, 0.0f,
-        X1, Y0, 1.0f, 1.0f,
-        X0, Y1, 0.0f, 0.0f,
-        X1, Y0, 1.0f, 1.0f,
-        X0, Y0, 0.0f, 1.0f,
-    };
-
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(VERTS), VERTS, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
@@ -82,9 +74,33 @@ void DisplayWidget::drawPixels(const uint8_t* pixels)
 void DisplayWidget::paintGL()
 {
     const auto& palette = AppSettings::instance.emulation.palette;
+    const float r = palette[0].r / 255.0f;
+    const float g = palette[0].g / 255.0f;
+    const float b = palette[0].b / 255.0f;
 
-    glClearColor(palette[0].r / 255.0f, palette[0].g / 255.0f, palette[0].b / 255.0f, 1.0f);
+    const float dpr = devicePixelRatio();
+    const int pw = static_cast<int>(width() * dpr);
+    const int ph = static_cast<int>(height() * dpr);
+
+    glViewport(0, 0, pw, ph);
+    glClearColor(r, g, b, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    const float scale = std::min(
+        static_cast<float>(pw) / (SCREEN_W + MARGIN * 2),
+        static_cast<float>(ph) / (SCREEN_H + MARGIN * 2));
+
+    const int total_w = static_cast<int>((SCREEN_W + MARGIN * 2) * scale);
+    const int total_h = static_cast<int>((SCREEN_H + MARGIN * 2) * scale);
+    const int margin_px = static_cast<int>(MARGIN * scale);
+
+    const int screen_w = total_w - margin_px * 2;
+    const int screen_h = total_h - margin_px * 2;
+
+    const int vp_x = (pw - total_w) / 2 + margin_px;
+    const int vp_y = (ph - total_h) / 2 + margin_px;
+
+    glViewport(vp_x, vp_y, screen_w, screen_h);
 
     uint8_t pixels[SCREEN_W * SCREEN_H * 4];
 
@@ -153,5 +169,5 @@ void DisplayWidget::paintGL()
 
 void DisplayWidget::resizeGL(int w, int h)
 {
-    glViewport(0, 0, w, h);
+
 }

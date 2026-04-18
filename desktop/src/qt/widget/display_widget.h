@@ -6,8 +6,8 @@
 
 #define SCREEN_W 96
 #define SCREEN_H 64
+#define MARGIN 4
 #define SCALE 8
-#define MARGIN (4 * SCALE)
 
 class DisplayWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {
@@ -18,13 +18,19 @@ public:
 
     void setEmulator(PocketWalker* emulator);
 
+    QSize sizeHint() const override
+    {
+        return QSize((SCREEN_W + MARGIN * 2) * SCALE, (SCREEN_H + MARGIN * 2) * SCALE);
+    }
+
 protected:
     void initializeGL() override;
-    void drawPixels(const uint8_t* pixels);
     void paintGL() override;
     void resizeGL(int w, int h) override;
 
 private:
+    void drawPixels(const uint8_t* pixels);
+
     PocketWalker* emulator = nullptr;
     uint8_t splash[1536] = {};
     QOpenGLShaderProgram shader;
