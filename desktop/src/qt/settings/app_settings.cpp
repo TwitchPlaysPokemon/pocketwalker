@@ -7,9 +7,7 @@ AppSettings AppSettings::instance = {};
 
 std::string AppSettings::settingsPath()
 {
-    const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    QDir().mkpath(dir);
-    return (dir + "/settings.json").toStdString();
+    return "./settings.json";
 }
 
 void AppSettings::load()

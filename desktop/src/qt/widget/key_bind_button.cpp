@@ -52,6 +52,22 @@ void KeyBindButton::focusOutEvent(QFocusEvent* event)
     QPushButton::focusOutEvent(event);
 }
 
+bool KeyBindButton::event(QEvent* event)
+{
+    if (waiting && event->type() == QEvent::KeyPress)
+    {
+        auto* keyEvent = static_cast<QKeyEvent*>(event);
+
+        if (keyEvent->key() == Qt::Key_Tab)
+        {
+            keyPressEvent(keyEvent);
+            return true;
+        }
+    }
+
+    return QPushButton::event(event);
+}
+
 void KeyBindButton::setWaiting(bool w)
 {
     waiting = w;
