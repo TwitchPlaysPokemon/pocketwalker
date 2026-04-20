@@ -15,6 +15,7 @@
 #include "../dialog/settings/general_settings_dialog.h"
 #include "../dialog/settings/ir_settings_dialog.h"
 #include "desktop/src/qt/dialog/about_dialog.h"
+#include "desktop/src/qt/dialog/settings/audio_settings_dialog.h"
 #include "desktop/src/qt/settings/app_settings.h"
 
 QtWindowSystem::QtWindowSystem(QWidget* parent)
@@ -89,6 +90,14 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
     connect(emulation_settings_action, &QAction::triggered, this, [this]
     {
         auto* dlg = new EmulationSettingsDialog(this);
+        dlg->setAttribute(Qt::WA_DeleteOnClose);
+        dlg->exec();
+    });
+
+    auto* audio_settings_action = settings_menu->addAction("Audio");
+    connect(audio_settings_action, &QAction::triggered, this, [this]
+    {
+        auto* dlg = new AudioSettingsDialog(this);
         dlg->setAttribute(Qt::WA_DeleteOnClose);
         dlg->exec();
     });

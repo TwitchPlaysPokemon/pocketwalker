@@ -14,10 +14,10 @@ struct ControlSettings
 inline void to_json(nlohmann::json& j, const ControlSettings& s)
 {
     j = nlohmann::json{
-            {"key_left", s.key_left},
-            {"key_right", s.key_right},
-            {"key_center", s.key_center},
-            {"key_speedup", s.key_speedup}
+        {"key_left", s.key_left},
+        {"key_right", s.key_right},
+        {"key_center", s.key_center},
+        {"key_speedup", s.key_speedup}
     };
 }
 

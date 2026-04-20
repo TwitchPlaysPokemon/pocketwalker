@@ -14,9 +14,9 @@ struct IRSettings
 inline void to_json(nlohmann::json& j, const IRSettings& s)
 {
     j = nlohmann::json{
-            {"mode", static_cast<int>(s.mode)},
-            {"host", s.host},
-            {"port", s.port}
+        {"mode", static_cast<int>(s.mode)},
+        {"host", s.host},
+        {"port", s.port}
     };
 }
 

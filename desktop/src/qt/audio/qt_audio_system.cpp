@@ -1,6 +1,8 @@
 #include "qt_audio_system.h"
 #include <QMediaDevices>
 
+#include "desktop/src/qt/settings/app_settings.h"
+
 QtAudioSystem::QtAudioSystem(QObject* parent) : QObject(parent)
 {
     QAudioFormat fmt;
@@ -70,7 +72,7 @@ void QtAudioSystem::PushSample(BuzzerInformation info)
             fade_counter--;
         }
 
-        raw = std::clamp(raw, -32768.0f, 32767.0f);
+        raw = std::clamp(raw, -32768.0f, 32767.0f) * AppSettings::instance.audio.volume;
     }
 
     phase += current_freq / static_cast<float>(AUDIO_SAMPLE_RATE);
