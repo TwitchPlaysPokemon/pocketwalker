@@ -31,6 +31,7 @@ jobs:
           path: ${{ github.workspace }}/vcpkg_cache
           key: vcpkg-windows-x64-${{ hashFiles('desktop/vcpkg.json') }}
           restore-keys: vcpkg-windows-x64-
+          save-always: true
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
