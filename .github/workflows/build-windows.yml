@@ -10,6 +10,8 @@ on:
 jobs:
   build-windows:
     runs-on: windows-2025
+    env:
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/vcpkg_cache,readwrite
     defaults:
       run:
         shell: msys2 {0}
@@ -25,13 +27,12 @@ jobs:
           update: true
           pacboy: gcc:p cmake:p ninja:p make:p
 
-      - name: Cache vcpkg
-        uses: actions/cache@v4
+      - name: Restore vcpkg cache
+        uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/vcpkg_cache
           key: vcpkg-windows-x64-${{ hashFiles('desktop/vcpkg.json') }}
           restore-keys: vcpkg-windows-x64-
-          save-always: true
 
       - name: Set up vcpkg
         uses: lukka/run-vcpkg@v11
@@ -60,3 +61,9 @@ jobs:
         with:
           name: pocketwalker-windows-x86_64
           path: desktop/build/release/release/pocketwalker.exe
+
+      - name: Save vcpkg cache
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/vcpkg_cache
+          key: vcpkg-windows-x64-${{ hashFiles('desktop/vcpkg.json') }}
