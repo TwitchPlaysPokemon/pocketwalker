@@ -15,6 +15,8 @@ jobs:
         shell: msys2 {0}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
@@ -23,8 +25,8 @@ jobs:
           update: true
           pacboy: gcc:p cmake:p ninja:p make:p
 
-      - name: Restore vcpkg cache
-        uses: actions/cache/restore@v4
+      - name: Cache vcpkg
+        uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/vcpkg_cache
           key: vcpkg-windows-x64-${{ hashFiles('desktop/vcpkg.json') }}
@@ -57,9 +59,3 @@ jobs:
         with:
           name: pocketwalker-windows-x86_64
           path: desktop/build/release/release/pocketwalker.exe
-
-      - name: Save vcpkg cache
-        uses: actions/cache/save@v4
-        with:
-          path: ${{ github.workspace }}/vcpkg_cache
-          key: vcpkg-windows-x64-${{ hashFiles('desktop/vcpkg.json') }}
