@@ -136,9 +136,42 @@ QtWindowSystem::QtWindowSystem(QWidget* parent)
 
     applyTheme();
 
-    const auto& general = AppSettings::instance.general;
-    if (general.boot_on_launch && !general.default_rom.empty())
-        launchEmulator(general.default_rom);
+    const QStringList args = QCoreApplication::arguments();
+    const auto arg_count = args.size() - 1;
+
+    if (arg_count >= 1)
+    {
+        const QFileInfo rom_file(args.at(1));
+        if (!rom_file.exists() || !rom_file.isFile())
+        {
+            Log::Warn("Invalid ROM path: {}", args.at(1).toStdString());
+            return;
+        }
+
+        const std::string rom_path = rom_file.absoluteFilePath().toStdString();
+
+        std::string save_path;
+        if (arg_count >= 2)
+        {
+            const QFileInfo save_file(args.at(2));
+            if (!save_file.exists())
+            {
+                Log::Warn("Invalid save path: {}", args.at(2).toStdString());
+                return;
+            }
+
+            save_path = save_file.absoluteFilePath().toStdString();
+        }
+
+        launchEmulator(rom_path, save_path);
+    }
+    else
+    {
+        const auto& general = AppSettings::instance.general;
+        if (general.boot_on_launch && !general.default_rom.empty())
+            launchEmulator(general.default_rom);
+    }
+
 }
 
 QtWindowSystem::~QtWindowSystem()
@@ -176,7 +209,7 @@ void QtWindowSystem::openRecentROM(const QString& path)
 void QtWindowSystem::importSave()
 {
     const QString path = QFileDialog::getOpenFileName(
-        this, "Import Save", QString(), "Save Files (*.sav);;All Files (*)");
+        this, "Import Save", QString(), "Save Files (*.sav *.bin);;All Files (*)");
 
     if (path.isEmpty())
         return;
@@ -210,12 +243,16 @@ void QtWindowSystem::resetEmulator()
     launchEmulator(path);
 }
 
-void QtWindowSystem::launchEmulator(const std::string& rom_path)
+void QtWindowSystem::launchEmulator(const std::string& rom_path, const std::string& save_path)
 {
     shutdownEmulator();
     addToRecentROMs(rom_path);
 
-    context = std::make_unique<EmulatorContext>(rom_path, this);
+    if (save_path.empty())
+        context = std::make_unique<EmulatorContext>(rom_path, this);
+    else
+        context = std::make_unique<EmulatorContext>(rom_path, save_path, this);
+
     display->setEmulator(&context->emulator());
     setEmulatorActionsEnabled(true);
     render_timer->start(16);

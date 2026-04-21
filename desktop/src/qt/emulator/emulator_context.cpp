@@ -3,11 +3,11 @@
 #include <filesystem>
 #include "desktop/src/qt/settings/app_settings.h"
 
-EmulatorContext::EmulatorContext(const std::string& path, QObject* parent)
-    : QObject(parent)
-      , rom_path(path)
-      , save_path(path.substr(0, path.find_last_of('.')) + ".sav")
+EmulatorContext::EmulatorContext(const std::string& rom_path, const std::string& save_path, QObject* parent)
+    : QObject(parent), rom_path(rom_path)
 {
+    this->save_path = save_path;
+
     RomBuffer rom_buffer = {};
     std::ifstream rom_file(rom_path, std::ios::binary);
     rom_file.read(reinterpret_cast<char*>(rom_buffer.data()), 0xC000);
@@ -36,6 +36,12 @@ EmulatorContext::EmulatorContext(const std::string& path, QObject* parent)
     network_thread->start();
 
     emulator_thread = std::make_unique<std::thread>([this] { emu->Start(); });
+}
+
+EmulatorContext::EmulatorContext(const std::string& path, QObject* parent)
+    : EmulatorContext(path, path.substr(0, path.find_last_of('.')) + ".sav", parent)
+{
+
 }
 
 EmulatorContext::~EmulatorContext()

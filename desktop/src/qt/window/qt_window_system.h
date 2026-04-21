@@ -28,7 +28,7 @@ private slots:
     void resetEmulator();
 
 private:
-    void launchEmulator(const std::string& rom_path);
+    void launchEmulator(const std::string& rom_path, const std::string& save_path = "");
     void shutdownEmulator();
     void addToRecentROMs(const std::string& path);
     void updateRecentROMsMenu();

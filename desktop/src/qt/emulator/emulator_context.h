@@ -15,6 +15,7 @@ class EmulatorContext : public QObject
     Q_OBJECT
 
 public:
+    explicit EmulatorContext(const std::string& rom_path, const std::string& save_path, QObject* parent = nullptr);
     explicit EmulatorContext(const std::string& rom_path, QObject* parent = nullptr);
     ~EmulatorContext() override;
 
