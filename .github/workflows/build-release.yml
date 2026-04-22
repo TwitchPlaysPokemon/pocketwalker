@@ -1,11 +1,9 @@
-name: build-windows
+name: build-release
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
+    tags:
+      - '*'
 
 jobs:
   build-windows:
@@ -67,3 +65,14 @@ jobs:
         with:
           path: ${{ github.workspace }}/vcpkg_cache
           key: vcpkg-windows-x64-${{ hashFiles('desktop/vcpkg.json') }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "pocketwalker ${{ github.ref_name }}"
+          files: desktop/build/release/release/pocketwalker.exe
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
