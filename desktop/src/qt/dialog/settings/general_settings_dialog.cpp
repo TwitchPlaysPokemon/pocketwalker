@@ -50,11 +50,20 @@ GeneralSettingsDialog::GeneralSettingsDialog(QWidget* parent)
     auto* application_group = new QGroupBox("Application", this);
     application_group->setLayout(application_form);
 
+    auto* tweaks_form = new QFormLayout();
+    auto* tweaks_group = new QGroupBox("Tweaks", this);
+    tweaks_group->setLayout(tweaks_form);
+
+    prevent_activity_timeout_check = new QCheckBox("Prevent Activity Timeout", this);
+    prevent_activity_timeout_check->setChecked(general.prevent_activity_timeout);
+    tweaks_form->addRow(prevent_activity_timeout_check);
+
     auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
 
     auto* layout = new QVBoxLayout(this);
     layout->addWidget(appearance_group);
     layout->addWidget(application_group);
+    layout->addWidget(tweaks_group);
     layout->addWidget(buttons);
 
     connect(boot_on_launch_check, &QCheckBox::toggled, this, &GeneralSettingsDialog::onBootOnLaunchToggled);
@@ -84,13 +93,18 @@ void GeneralSettingsDialog::apply()
 
     const auto theme = static_cast<GeneralSettings::AppTheme>(theme_combo->currentData().toInt());
     const bool theme_changed = theme != general.theme;
+    const bool prevent_activity_timeout_changed = prevent_activity_timeout_check->isChecked() != general.prevent_activity_timeout;
 
     general.theme = theme;
     general.boot_on_launch = boot_on_launch_check->isChecked();
+    general.prevent_activity_timeout = prevent_activity_timeout_check->isChecked();
     general.default_rom = default_rom_edit->text().toStdString();
 
     if (theme_changed)
         emit themeChanged();
+
+    if (prevent_activity_timeout_changed)
+        emit preventActivityTimeoutChanged();
 
     accept();
 }

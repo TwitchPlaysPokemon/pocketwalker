@@ -62,6 +62,12 @@ void PocketWalker::Start()
             std::this_thread::sleep_until(next);
         }
 
+        if (prevent_activity_timeout) {
+            // Each time a button is pressed, the activity timer is reset to 0x5A.
+            // To prevent the screen from sleeping, pin the value at 0x5A.
+            this->soc->memory->Write8(PW_ADDR_ACTIVITY_TIMER, 0x5A);
+        }
+
         prev_fast_mode = is_fast_mode;
     }
 }
@@ -95,6 +101,11 @@ void PocketWalker::UseFastMode(bool value)
 void PocketWalker::SetPause(bool value)
 {
     this->is_paused = value;
+}
+
+void PocketWalker::SetPreventActivityTimeout(bool value)
+{
+    this->prevent_activity_timeout = value;
 }
 
 void PocketWalker::OnSamplePushed(const EventHandlerCallback<BuzzerInformation>& callback)

@@ -15,6 +15,7 @@
 #define PW_ADDR_WATTS 0xF78E
 #define PW_ADDR_SESSION_STEPS 0xF79C
 #define PW_ADDR_TOTAL_STEPS 0xF780
+#define PW_ADDR_ACTIVITY_TIMER 0xF7AF
 
 enum class ButtonType
 {
@@ -37,6 +38,8 @@ public:
     void UseSyntheticSteps(bool value);
     void UseFastMode(bool value);
     void SetPause(bool value);
+
+    void SetPreventActivityTimeout(bool value);
 
     void OnSamplePushed(const EventHandlerCallback<BuzzerInformation>& callback);
 
@@ -64,4 +67,5 @@ private:
     std::atomic<bool> is_running = false;
     std::atomic<bool> is_paused = false;
     std::atomic<bool> is_fast_mode = false;
+    std::atomic<bool> prevent_activity_timeout = false;
 };

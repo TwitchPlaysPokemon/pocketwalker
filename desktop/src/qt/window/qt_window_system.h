@@ -36,6 +36,7 @@ private:
     void updateRecentROMsMenu();
     void setEmulatorActionsEnabled(bool enabled);
     void applyTheme();
+    void SetPreventActivityTimeout();
 
     ApplicationArguments args;
 

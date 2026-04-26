@@ -14,6 +14,7 @@ public:
 
 signals:
     void themeChanged();
+    void preventActivityTimeoutChanged();
 
 private slots:
     void onBootOnLaunchToggled(bool enabled);
@@ -23,6 +24,7 @@ private slots:
 private:
     QComboBox* theme_combo;
     QCheckBox* boot_on_launch_check;
+    QCheckBox* prevent_activity_timeout_check;
     QLineEdit* default_rom_edit;
     QPushButton* browse_rom_btn;
 };
