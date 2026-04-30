@@ -149,3 +149,8 @@ void PocketWalker::SetEepromBuffer(const EepromBuffer& buffer) const
 {
     m95512->eeprom = buffer;
 }
+
+MemoryBus* PocketWalker::Memory() const
+{
+    return soc->memory.get();
+}

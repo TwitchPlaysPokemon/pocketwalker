@@ -16,6 +16,10 @@
     {
       "name": "qtmultimedia",
       "default-features": false
+    },
+    {
+      "name": "qthttpserver",
+      "default-features": false
     }
   ]
 }

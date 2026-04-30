@@ -10,7 +10,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets Multimedia)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets Multimedia HttpServer)
 find_package(OpenGL REQUIRED)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/../core core)
@@ -52,6 +52,7 @@ target_link_libraries(pocketwalker PRIVATE
         Qt6::Widgets
         Qt6::OpenGLWidgets
         Qt6::Multimedia
+        Qt6::HttpServer
         OpenGL::GL
         nlohmann_json::nlohmann_json
 )

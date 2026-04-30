@@ -10,4 +10,6 @@ struct ApplicationArguments
     std::optional<bool> server_mode;
     std::optional<std::string> host;
     std::optional<uint16_t> port;
+    std::optional<bool> enable_api;
+    std::optional<uint16_t> api_port;
 };

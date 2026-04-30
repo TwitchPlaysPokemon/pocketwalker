@@ -30,6 +30,14 @@ int main(int argc, char* argv[])
              .help("TCP port for server or client.")
              .scan<'i', uint16_t>();
 
+    arguments.add_argument("--enable-api")
+             .help("Enables the HTTP API server.")
+             .flag();
+
+    arguments.add_argument("--api-port")
+             .help("TCP port for the API server.")
+             .scan<'i', uint16_t>();
+
     try
     {
         arguments.parse_args(argc, argv);
@@ -49,6 +57,8 @@ int main(int argc, char* argv[])
     args.server_mode = arguments.get<bool>("--server");
     args.host = arguments.present<std::string>("--ip");
     args.port = arguments.present<uint16_t>("--port");
+    args.enable_api = arguments.get<bool>("--enable-api");
+    args.api_port = arguments.present<uint16_t>("--api-port");
 
     QtWindowSystem window(args);
     window.show();

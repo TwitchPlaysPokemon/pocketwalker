@@ -10,6 +10,7 @@
 #include "desktop/src/qt/audio/qt_audio_system.h"
 #include "desktop/src/qt/network/qt_network_system.h"
 #include "desktop/src/qt/application_args.h"
+#include "desktop/src/qt/api/qt_api.h"
 
 class EmulatorContext : public QObject
 {
@@ -37,4 +38,6 @@ private:
     std::unique_ptr<QtNetworkSystem> network;
     std::unique_ptr<QThread> network_thread;
     std::unique_ptr<std::thread> emulator_thread;
+    std::unique_ptr<QtAPI> api;
+    std::unique_ptr<QThread> api_thread;
 };

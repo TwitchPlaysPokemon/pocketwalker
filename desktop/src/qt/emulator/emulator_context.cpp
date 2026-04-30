@@ -33,6 +33,15 @@ EmulatorContext::EmulatorContext(const std::string& rom_path, const std::string&
     connect(network_thread.get(), &QThread::started, network.get(), &QtNetworkSystem::start);
     network_thread->start();
 
+    if (args.enable_api.value_or(false))
+    {
+        api_thread = std::make_unique<QThread>();
+        api = std::make_unique<QtAPI>(*emu, args.api_port.value_or(1307));
+        api->moveToThread(api_thread.get());
+        connect(api_thread.get(), &QThread::started, api.get(), &QtAPI::start);
+        api_thread->start();
+    }
+
     emulator_thread = std::make_unique<std::thread>([this] { emu->Start(); });
 }
 

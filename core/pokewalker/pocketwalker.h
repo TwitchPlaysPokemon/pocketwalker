@@ -54,6 +54,8 @@ public:
     EepromBuffer GetEepromBuffer() const;
     void SetEepromBuffer(const EepromBuffer& buffer) const;
 
+    MemoryBus* Memory() const;
+
 private:
     std::shared_ptr<H838606> soc = nullptr;
 
