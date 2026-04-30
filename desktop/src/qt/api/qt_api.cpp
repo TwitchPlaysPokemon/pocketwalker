@@ -38,6 +38,15 @@ void QtAPI::start()
         }
     );
 
+    endpoints.push_back("TakeSteps: (Usage: /TakeSteps/<Count:int>) Takes the specified number of steps.");
+    server->route("/TakeSteps/<arg>", QHttpServerRequest::Method::Get,
+        [this](QString count, const QHttpServerRequest &request) {
+            uint8_t steps = static_cast<uint8_t>(std::stoul(count.toStdString()));
+            emulator.TakeStep(steps);
+            return QHttpServerResponse("Ok", QHttpServerResponse::StatusCode::Ok);
+         }
+    );
+
     endpoints.push_back("SetWatts: (Usage: /SetWatts/<Watts:int>) Sets the current Watts.");
     server->route("/SetWatts/<arg>", QHttpServerRequest::Method::Get,
         [this](uint16_t watts, const QHttpServerRequest &request) {
@@ -179,8 +188,7 @@ void QtAPI::start()
     );
 
     // List all endpoints (this crashes)
-    // endpoints.push_back("Help: (Usage: /Help) Lists all available endpoints.");
-    // server->route("/Help", QHttpServerRequest::Method::Get,
+    // server->route("/", QHttpServerRequest::Method::Get,
     //     [&endpoints](const QHttpServerRequest &request) {
     //         std::stringstream ss;
     //         ss << "Available endpoints:\n";

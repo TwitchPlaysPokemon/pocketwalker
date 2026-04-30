@@ -25,12 +25,14 @@ ControlSettingsDialog::ControlSettingsDialog(QWidget* parent)
     left_button = make_button(controls.key_left);
     right_button = make_button(controls.key_right);
     center_button = make_button(controls.key_center);
+    step_button = make_button(controls.key_step);
     speedup_button = make_button(controls.key_speedup);
 
     auto* controls_form = new QFormLayout();
     controls_form->addRow("Left:", left_button);
     controls_form->addRow("Right:", right_button);
     controls_form->addRow("Center:", center_button);
+    controls_form->addRow("Take Step:", step_button);
     controls_form->addRow("Speed Up:", speedup_button);
 
     auto* controls_group = new QGroupBox("Keys", this);
@@ -53,6 +55,7 @@ void ControlSettingsDialog::apply()
     controls.key_left = left_button->key();
     controls.key_right = right_button->key();
     controls.key_center = center_button->key();
+    controls.key_step = step_button->key();
     controls.key_speedup = speedup_button->key();
 
     accept();

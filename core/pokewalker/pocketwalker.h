@@ -17,6 +17,10 @@
 #define PW_ADDR_TOTAL_STEPS 0xF780
 #define PW_ADDR_ACTIVITY_TIMER 0xF7AF
 
+#define PW_ADDR_STATUS_FLAGS 0xF7B5
+#define PW_ADDR_STEP_COUNT 0xF7B2
+#define PW_ADDR_SUB_STEP_COUNT 0xF7B3
+
 enum class ButtonType
 {
     CENTER = 1 << 0,
@@ -40,6 +44,8 @@ public:
     void SetPause(bool value);
 
     void SetPreventActivityTimeout(bool value);
+
+    void TakeStep(uint8_t step_count);
 
     void OnSamplePushed(const EventHandlerCallback<BuzzerInformation>& callback);
 

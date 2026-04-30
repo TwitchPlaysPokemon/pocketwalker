@@ -387,6 +387,7 @@ void QtWindowSystem::keyPressEvent(QKeyEvent* event)
     if (key == controls.key_left) context->emulator().PressButton(ButtonType::LEFT);
     else if (key == controls.key_right) context->emulator().PressButton(ButtonType::RIGHT);
     else if (key == controls.key_center) context->emulator().PressButton(ButtonType::CENTER);
+    else if (key == controls.key_step) context->emulator().TakeStep(1);
     else if (key == controls.key_speedup) context->emulator().UseFastMode(true);
     else QMainWindow::keyPressEvent(event);
 }
@@ -405,6 +406,7 @@ void QtWindowSystem::keyReleaseEvent(QKeyEvent* event)
     if (key == controls.key_left) context->emulator().ReleaseButton(ButtonType::LEFT);
     else if (key == controls.key_right) context->emulator().ReleaseButton(ButtonType::RIGHT);
     else if (key == controls.key_center) context->emulator().ReleaseButton(ButtonType::CENTER);
+    else if (key == controls.key_step); // No action on release for step key
     else if (key == controls.key_speedup) context->emulator().UseFastMode(false);
     else QMainWindow::keyReleaseEvent(event);
 }
