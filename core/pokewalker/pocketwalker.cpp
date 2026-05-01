@@ -111,8 +111,9 @@ void PocketWalker::SetPreventActivityTimeout(bool value)
 void PocketWalker::TakeStep(uint8_t step_count)
 {
     uint8_t current_steps = this->soc->memory->Read8(PW_ADDR_STEP_COUNT);
+    current_steps -= this->soc->memory->Read8(PW_ADDR_SUB_STEP_COUNT);
     this->soc->memory->Write8(PW_ADDR_STEP_COUNT, current_steps + step_count);
-    //this->soc->memory->Write8(PW_ADDR_SUB_STEP_COUNT, 0);
+    this->soc->memory->Write8(PW_ADDR_SUB_STEP_COUNT, 0);
     this->soc->memory->Write8(PW_ADDR_STATUS_FLAGS, this->soc->memory->Read8(PW_ADDR_STATUS_FLAGS) | 0x80); // Trigger walking animation
 }
 
