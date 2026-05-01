@@ -15,8 +15,7 @@ QtAPI::QtAPI(PocketWalker& emulator, quint16 port, QObject* parent)
 void QtAPI::start()
 {
     server = std::make_unique<QHttpServer>();
-    std::vector<QString> endpoints;
-
+    
     endpoints.push_back("PressButton: (Usage: /PressButton/<ButtonName (left, right, center, none)>) Presses down the specified button, releasing all others. Use 'none' to release all buttons.");
     server->route("/PressButton/<arg>", QHttpServerRequest::Method::Get,
         [this](QString button, const QHttpServerRequest &request) {
@@ -187,17 +186,17 @@ void QtAPI::start()
         }
     );
 
-    // List all endpoints (this crashes)
-    // server->route("/", QHttpServerRequest::Method::Get,
-    //     [&endpoints](const QHttpServerRequest &request) {
-    //         std::stringstream ss;
-    //         ss << "Available endpoints:\n";
-    //         for (const auto& route : endpoints) {
-    //             ss << route.toStdString() << "\n";
-    //         }
-    //         return QHttpServerResponse(QString::fromStdString(ss.str()), QHttpServerResponse::StatusCode::Ok);
-    //      }
-    // );
+    //List all endpoints
+    server->route("/", QHttpServerRequest::Method::Get,
+        [this](const QHttpServerRequest &request) {
+            std::stringstream ss;
+            ss << "Available endpoints:\n";
+            for (const auto& route : endpoints) {
+                ss << route.toStdString() << "\n";
+            }
+            return QHttpServerResponse(QString::fromStdString(ss.str()), QHttpServerResponse::StatusCode::Ok);
+        }
+    );
 
     auto tcpserver = new QTcpServer();
     if (!tcpserver->listen(QHostAddress::Any, port) || !server->bind(tcpserver)) {

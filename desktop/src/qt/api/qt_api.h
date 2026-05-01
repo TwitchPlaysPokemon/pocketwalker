@@ -26,4 +26,5 @@ private:
     PocketWalker& emulator;
     quint16 port;
     std::unique_ptr<QHttpServer> server;
+    std::vector<QString> endpoints;
 };
