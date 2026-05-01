@@ -15,7 +15,7 @@ QtAPI::QtAPI(PocketWalker& emulator, quint16 port, QObject* parent)
 void QtAPI::start()
 {
     server = std::make_unique<QHttpServer>();
-    
+
     endpoints.push_back("PressButton: (Usage: /PressButton/<ButtonName (left, right, center, none)>) Presses down the specified button, releasing all others. Use 'none' to release all buttons.");
     server->route("/PressButton/<arg>", QHttpServerRequest::Method::Get,
         [this](QString button, const QHttpServerRequest &request) {

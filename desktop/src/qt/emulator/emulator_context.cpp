@@ -54,16 +54,22 @@ EmulatorContext::EmulatorContext(const std::string& path, const ApplicationArgum
 EmulatorContext::~EmulatorContext()
 {
     emu->Stop();
+
     if (emulator_thread && emulator_thread->joinable())
         emulator_thread->join();
+
+    writeSave();
 
     if (network_thread)
     {
         network_thread->quit();
         network_thread->wait();
     }
-
-    writeSave();
+    if (api_thread)
+    {
+        api_thread->quit();
+        api_thread->wait();
+    }
 }
 
 void EmulatorContext::loadSave()
