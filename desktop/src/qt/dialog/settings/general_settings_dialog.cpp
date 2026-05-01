@@ -58,6 +58,10 @@ GeneralSettingsDialog::GeneralSettingsDialog(QWidget* parent)
     prevent_activity_timeout_check->setChecked(general.prevent_activity_timeout);
     tweaks_form->addRow(prevent_activity_timeout_check);
 
+    force_walking_state_check = new QCheckBox("Force Walking State When Steps Remaining", this);
+    force_walking_state_check->setChecked(general.force_walking_state);
+    tweaks_form->addRow(force_walking_state_check);
+
     auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
 
     auto* layout = new QVBoxLayout(this);
@@ -94,10 +98,12 @@ void GeneralSettingsDialog::apply()
     const auto theme = static_cast<GeneralSettings::AppTheme>(theme_combo->currentData().toInt());
     const bool theme_changed = theme != general.theme;
     const bool prevent_activity_timeout_changed = prevent_activity_timeout_check->isChecked() != general.prevent_activity_timeout;
+    const bool force_walking_state_changed = force_walking_state_check->isChecked() != general.force_walking_state;
 
     general.theme = theme;
     general.boot_on_launch = boot_on_launch_check->isChecked();
     general.prevent_activity_timeout = prevent_activity_timeout_check->isChecked();
+    general.force_walking_state = force_walking_state_check->isChecked();
     general.default_rom = default_rom_edit->text().toStdString();
 
     if (theme_changed)
@@ -105,6 +111,9 @@ void GeneralSettingsDialog::apply()
 
     if (prevent_activity_timeout_changed)
         emit preventActivityTimeoutChanged();
+
+    if (force_walking_state_changed)
+        emit forceWalkingStateChanged();
 
     accept();
 }

@@ -10,6 +10,7 @@ struct GeneralSettings
     AppTheme theme = AppTheme::System;
     bool boot_on_launch = false;
     bool prevent_activity_timeout = false;
+    bool force_walking_state = false;
     std::string default_rom;
     std::vector<std::string> recent_roms;
 };
@@ -21,7 +22,8 @@ inline void to_json(nlohmann::json& j, const GeneralSettings& s)
         {"boot_on_launch", s.boot_on_launch},
         {"default_rom", s.default_rom},
         {"recent_roms", s.recent_roms},
-        {"prevent_activity_timeout", s.prevent_activity_timeout}
+        {"prevent_activity_timeout", s.prevent_activity_timeout},
+        {"force_walking_state", s.force_walking_state}
     };
 }
 
@@ -33,4 +35,5 @@ inline void from_json(const nlohmann::json& j, GeneralSettings& s)
     s.default_rom = j.value("default_rom", "");
     s.recent_roms = j.value("recent_roms", std::vector<std::string>{});
     s.prevent_activity_timeout = j.value("prevent_activity_timeout", false);
+    s.force_walking_state = j.value("force_walking_state", false);
 }

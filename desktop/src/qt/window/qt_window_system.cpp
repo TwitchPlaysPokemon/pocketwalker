@@ -111,6 +111,7 @@ QtWindowSystem::QtWindowSystem(ApplicationArguments args, QWidget* parent)
         auto* dlg = new GeneralSettingsDialog(this);
         connect(dlg, &GeneralSettingsDialog::themeChanged, this, &QtWindowSystem::applyTheme);
         connect(dlg, &GeneralSettingsDialog::preventActivityTimeoutChanged, this, &QtWindowSystem::SetPreventActivityTimeout);
+        connect(dlg, &GeneralSettingsDialog::forceWalkingStateChanged, this, &QtWindowSystem::SetForceWalkingState);
         dlg->setAttribute(Qt::WA_DeleteOnClose);
         dlg->exec();
     });
@@ -284,6 +285,7 @@ void QtWindowSystem::launchEmulator(const std::string& rom_path, const std::stri
     const std::string filename = rom_path.substr(rom_path.find_last_of("/\\") + 1);
     setWindowTitle(QString("PocketWalker - %1").arg(QString::fromStdString(filename)));
     QtWindowSystem::SetPreventActivityTimeout();
+    QtWindowSystem::SetForceWalkingState();
 }
 
 void QtWindowSystem::shutdownEmulator()
@@ -371,6 +373,12 @@ void QtWindowSystem::SetPreventActivityTimeout()
 {
     if (context)
         context->emulator().SetPreventActivityTimeout(AppSettings::instance.general.prevent_activity_timeout);
+}
+
+void QtWindowSystem::SetForceWalkingState()
+{
+    if (context)
+        context->emulator().SetForceWalkingState(AppSettings::instance.general.force_walking_state);
 }
 
 void QtWindowSystem::keyPressEvent(QKeyEvent* event)

@@ -44,6 +44,7 @@ public:
     void SetPause(bool value);
 
     void SetPreventActivityTimeout(bool value);
+    void SetForceWalkingState(bool value);
 
     void TakeStep(uint8_t step_count);
 
@@ -76,4 +77,5 @@ private:
     std::atomic<bool> is_paused = false;
     std::atomic<bool> is_fast_mode = false;
     std::atomic<bool> prevent_activity_timeout = false;
+    std::atomic<bool> force_walking_state = false;
 };

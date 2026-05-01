@@ -68,6 +68,14 @@ void PocketWalker::Start()
             this->soc->memory->Write8(PW_ADDR_ACTIVITY_TIMER, 0x5A);
         }
 
+        if (force_walking_state && this->soc->memory->Read8(PW_ADDR_STEP_COUNT) > this->soc->memory->Read8(PW_ADDR_SUB_STEP_COUNT)) {
+            // When using TakeStep to add steps, the accelerometer will turn off the walking animation.
+            // If there's still steps remaining, force the walking animation to stay on by setting the appropriate status flag.
+            uint8_t status_flags = this->soc->memory->Read8(PW_ADDR_STATUS_FLAGS);
+            status_flags |= 0x80;
+            this->soc->memory->Write8(PW_ADDR_STATUS_FLAGS, status_flags);
+        }
+
         prev_fast_mode = is_fast_mode;
     }
 }
@@ -106,6 +114,11 @@ void PocketWalker::SetPause(bool value)
 void PocketWalker::SetPreventActivityTimeout(bool value)
 {
     this->prevent_activity_timeout = value;
+}
+
+void PocketWalker::SetForceWalkingState(bool value)
+{
+    this->force_walking_state = value;
 }
 
 void PocketWalker::TakeStep(uint8_t step_count)
