@@ -16,6 +16,7 @@ signals:
     void themeChanged();
     void preventActivityTimeoutChanged();
     void forceWalkingStateChanged();
+    void infinitePokeradarTimeChanged();
 
 private slots:
     void onBootOnLaunchToggled(bool enabled);
@@ -27,6 +28,7 @@ private:
     QCheckBox* boot_on_launch_check;
     QCheckBox* prevent_activity_timeout_check;
     QCheckBox* force_walking_state_check;
+    QCheckBox* infinite_pokeradar_time_check;
     QLineEdit* default_rom_edit;
     QPushButton* browse_rom_btn;
 };

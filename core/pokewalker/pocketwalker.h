@@ -22,6 +22,12 @@
 #define PW_ADDR_STEP_COUNT 0xF7B2
 #define PW_ADDR_SUB_STEP_COUNT 0xF7B3
 
+#define PW_ADDR_POKERADAR_GRASS_TIMER 0xF7D5 // Seems to be also used as accellerometer Z axis LSB
+#define PW_ADDR_POKERADAR_GRASS_TIMER_INIT 0xBF1A //Stored in EEPROM. Maybe set by HGSS when sending the route over?
+
+#define PW_SCREEN_POKERADAR_GRASS 3
+
+
 enum class ButtonType
 {
     CENTER = 1 << 0,
@@ -46,6 +52,7 @@ public:
 
     void SetPreventActivityTimeout(bool value);
     void SetForceWalkingState(bool value);
+    void SetInfinitePokeradarTime(bool value);
 
     void TakeStep(uint8_t step_count);
 
@@ -79,4 +86,5 @@ private:
     std::atomic<bool> is_fast_mode = false;
     std::atomic<bool> prevent_activity_timeout = false;
     std::atomic<bool> force_walking_state = false;
+    std::atomic<bool> infinite_pokeradar_time = false;
 };

@@ -112,6 +112,7 @@ QtWindowSystem::QtWindowSystem(ApplicationArguments args, QWidget* parent)
         connect(dlg, &GeneralSettingsDialog::themeChanged, this, &QtWindowSystem::applyTheme);
         connect(dlg, &GeneralSettingsDialog::preventActivityTimeoutChanged, this, &QtWindowSystem::SetPreventActivityTimeout);
         connect(dlg, &GeneralSettingsDialog::forceWalkingStateChanged, this, &QtWindowSystem::SetForceWalkingState);
+        connect(dlg, &GeneralSettingsDialog::infinitePokeradarTimeChanged, this, &QtWindowSystem::SetInfinitePokeradarTime);
         dlg->setAttribute(Qt::WA_DeleteOnClose);
         dlg->exec();
     });
@@ -379,6 +380,12 @@ void QtWindowSystem::SetForceWalkingState()
 {
     if (context)
         context->emulator().SetForceWalkingState(AppSettings::instance.general.force_walking_state);
+}
+
+void QtWindowSystem::SetInfinitePokeradarTime()
+{
+    if (context)
+        context->emulator().SetInfinitePokeradarTime(AppSettings::instance.general.infinite_pokeradar_time);
 }
 
 void QtWindowSystem::keyPressEvent(QKeyEvent* event)

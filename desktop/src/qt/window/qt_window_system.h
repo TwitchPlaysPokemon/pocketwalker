@@ -38,6 +38,7 @@ private:
     void applyTheme();
     void SetPreventActivityTimeout();
     void SetForceWalkingState();
+    void SetInfinitePokeradarTime();
 
     ApplicationArguments args;
 

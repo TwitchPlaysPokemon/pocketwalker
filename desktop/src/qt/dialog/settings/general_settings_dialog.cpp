@@ -62,6 +62,10 @@ GeneralSettingsDialog::GeneralSettingsDialog(QWidget* parent)
     force_walking_state_check->setChecked(general.force_walking_state);
     tweaks_form->addRow(force_walking_state_check);
 
+    infinite_pokeradar_time_check = new QCheckBox("Infinite Pokeradar Time", this);
+    infinite_pokeradar_time_check->setChecked(general.infinite_pokeradar_time);
+    tweaks_form->addRow(infinite_pokeradar_time_check);
+
     auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
 
     auto* layout = new QVBoxLayout(this);
@@ -99,11 +103,13 @@ void GeneralSettingsDialog::apply()
     const bool theme_changed = theme != general.theme;
     const bool prevent_activity_timeout_changed = prevent_activity_timeout_check->isChecked() != general.prevent_activity_timeout;
     const bool force_walking_state_changed = force_walking_state_check->isChecked() != general.force_walking_state;
+    const bool infinite_pokeradar_time_changed = infinite_pokeradar_time_check->isChecked() != general.infinite_pokeradar_time;
 
     general.theme = theme;
     general.boot_on_launch = boot_on_launch_check->isChecked();
     general.prevent_activity_timeout = prevent_activity_timeout_check->isChecked();
     general.force_walking_state = force_walking_state_check->isChecked();
+    general.infinite_pokeradar_time = infinite_pokeradar_time_check->isChecked();
     general.default_rom = default_rom_edit->text().toStdString();
 
     if (theme_changed)
@@ -114,6 +120,9 @@ void GeneralSettingsDialog::apply()
 
     if (force_walking_state_changed)
         emit forceWalkingStateChanged();
+
+    if (infinite_pokeradar_time_changed)
+        emit infinitePokeradarTimeChanged();
 
     accept();
 }

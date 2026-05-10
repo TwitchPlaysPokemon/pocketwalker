@@ -61,6 +61,9 @@ void PocketWalker::Start()
                 next = std::chrono::high_resolution_clock::now();
             std::this_thread::sleep_until(next);
         }
+        prev_fast_mode = is_fast_mode;
+
+        // Apply game tweaks
 
         if (prevent_activity_timeout && this->soc->memory->Read8(PW_ADDR_ACTIVITY_TIMER) < 2) {
             // Each time a button is pressed, the activity timer is reset to 0x5A.
@@ -76,7 +79,12 @@ void PocketWalker::Start()
             this->soc->memory->Write8(PW_ADDR_STATUS_FLAGS, status_flags);
         }
 
-        prev_fast_mode = is_fast_mode;
+        if (infinite_pokeradar_time && this->soc->memory->Read8(PW_ADDR_CURRENT_SCREEN) == PW_SCREEN_POKERADAR_GRASS) {
+            // PW_ADDR_POKERADAR_GRASS_TIMER is used for other things outside of Grass screen, so only reset it there.
+            if (this->soc->memory->Read8(PW_ADDR_POKERADAR_GRASS_TIMER) < this->soc->memory->Read8(PW_ADDR_POKERADAR_GRASS_TIMER_INIT))
+                this->soc->memory->Write8(PW_ADDR_POKERADAR_GRASS_TIMER, this->soc->memory->Read8(PW_ADDR_POKERADAR_GRASS_TIMER_INIT));
+        }
+
     }
 }
 
@@ -114,6 +122,11 @@ void PocketWalker::SetPause(bool value)
 void PocketWalker::SetPreventActivityTimeout(bool value)
 {
     this->prevent_activity_timeout = value;
+}
+
+void PocketWalker::SetInfinitePokeradarTime(bool value)
+{
+    this->infinite_pokeradar_time = value;
 }
 
 void PocketWalker::SetForceWalkingState(bool value)

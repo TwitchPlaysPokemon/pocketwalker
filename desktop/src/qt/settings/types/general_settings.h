@@ -11,6 +11,7 @@ struct GeneralSettings
     bool boot_on_launch = false;
     bool prevent_activity_timeout = false;
     bool force_walking_state = false;
+    bool infinite_pokeradar_time = false;
     std::string default_rom;
     std::vector<std::string> recent_roms;
 };
@@ -23,7 +24,8 @@ inline void to_json(nlohmann::json& j, const GeneralSettings& s)
         {"default_rom", s.default_rom},
         {"recent_roms", s.recent_roms},
         {"prevent_activity_timeout", s.prevent_activity_timeout},
-        {"force_walking_state", s.force_walking_state}
+        {"force_walking_state", s.force_walking_state},
+        {{"infinite_pokeradar_time", s.infinite_pokeradar_time}}
     };
 }
 
@@ -36,4 +38,5 @@ inline void from_json(const nlohmann::json& j, GeneralSettings& s)
     s.recent_roms = j.value("recent_roms", std::vector<std::string>{});
     s.prevent_activity_timeout = j.value("prevent_activity_timeout", false);
     s.force_walking_state = j.value("force_walking_state", false);
+    s.infinite_pokeradar_time = j.value("infinite_pokeradar_time", false);
 }
