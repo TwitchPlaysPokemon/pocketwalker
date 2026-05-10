@@ -62,10 +62,10 @@ void PocketWalker::Start()
             std::this_thread::sleep_until(next);
         }
 
-        if (prevent_activity_timeout) {
+        if (prevent_activity_timeout && this->soc->memory->Read8(PW_ADDR_ACTIVITY_TIMER) < 2) {
             // Each time a button is pressed, the activity timer is reset to 0x5A.
-            // To prevent the screen from sleeping, pin the value at 0x5A.
             this->soc->memory->Write8(PW_ADDR_ACTIVITY_TIMER, 0x5A);
+            this->soc->memory->Write8(PW_ADDR_CURRENT_SCREEN, 0); // Reset to main walker screen
         }
 
         if (force_walking_state && this->soc->memory->Read8(PW_ADDR_STEP_COUNT) > this->soc->memory->Read8(PW_ADDR_SUB_STEP_COUNT)) {
