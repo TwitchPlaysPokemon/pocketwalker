@@ -25,7 +25,7 @@ inline void to_json(nlohmann::json& j, const GeneralSettings& s)
         {"recent_roms", s.recent_roms},
         {"prevent_activity_timeout", s.prevent_activity_timeout},
         {"force_walking_state", s.force_walking_state},
-        {{"infinite_pokeradar_time", s.infinite_pokeradar_time}}
+        {"infinite_pokeradar_time", s.infinite_pokeradar_time}
     };
 }
 
