@@ -287,6 +287,7 @@ void QtWindowSystem::launchEmulator(const std::string& rom_path, const std::stri
     setWindowTitle(QString("PocketWalker - %1").arg(QString::fromStdString(filename)));
     QtWindowSystem::SetPreventActivityTimeout();
     QtWindowSystem::SetForceWalkingState();
+    QtWindowSystem::SetInfinitePokeradarTime();
 }
 
 void QtWindowSystem::shutdownEmulator()
